@@ -66,18 +66,18 @@ public class MessagesRow {
     /**
      * @param tableName the name of a table to generate an insert statement for
      * @return a correctly formatted insert statement using the data from this MessagesRow
-     * @throws IOException if converting from the FileStream to a hexadecimal string fails.
-     */
-    public String CreateInsertStatement(String tableName) throws IOException {
+     *//// @throws IOException if converting from the FileStream to a hexadecimal string fails.
 
-        String hexString;
+    public String CreateInsertStatement(String tableName) {
+
+        /*String hexString;
         if (FileData != null) {
             byte[] FileBytes = FileData.readAllBytes();
             hexString = bytesToHex(FileBytes);
         } else hexString = "NULL";
-
+*/
         return String.format("INSERT INTO %s\n", tableName) +
-                String.format("Values(default, \"%s\", \"%s\", \"%s\", %d, \"%s\", \"%s\");", Author, Text, InstantToMySQLFormat(TimeSent), VoteSum, FileExtension, hexString);
+                String.format("Values(default, \"%s\", \"%s\", \"%s\", %d, \"%s\", \"%s\");", Author, Text, InstantToMySQLFormat(TimeSent), VoteSum, FileExtension, null);
     } //todo format the date better
 
     @Override
