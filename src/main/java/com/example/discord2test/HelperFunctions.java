@@ -3,12 +3,10 @@ package com.example.discord2test;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class HelperFunctions {
+
     public static String GetDatabaseVersion(Connection connection) throws SQLException {
         DatabaseMetaData metaData = connection.getMetaData();
         return String.format("JDBC version %d.%d\n", metaData.getJDBCMajorVersion(), metaData.getJDBCMinorVersion());
@@ -29,5 +27,12 @@ public class HelperFunctions {
 
     public static String StatementToNiceString(String SQL, Statement statement) throws SQLException {
         return new MessagesTable(statement.executeQuery(SQL)).toNiceString();
+    }
+
+    public static int GetMessageCount(Statement statement) throws SQLException {
+        ResultSet CountRS = statement.executeQuery("SELECT count(*) FROM messages"); //get the amount of messages
+        CountRS.first(); //since result is returned as a 1x1 table, look at the first and only row
+        return CountRS.getInt(1); //and the first and only column
+
     }
 }
