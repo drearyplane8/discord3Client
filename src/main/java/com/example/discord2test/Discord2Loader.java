@@ -19,7 +19,6 @@ public class Discord2Loader extends Application {
         Globals.loader = this;
 
         this.stage = stage; //set the member stage to be the same as the stage in this application.
-        Discord2Controller.loader = this;
 
         FXMLLoader fxmlLoader = new FXMLLoader(Discord2Loader.class.getResource("loginScreen.fxml")); //loads in sheet
         Scene scene = new Scene(fxmlLoader.load(), 1920, 1080); //create a new seen with height and width

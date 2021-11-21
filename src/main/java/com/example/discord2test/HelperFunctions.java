@@ -29,6 +29,12 @@ public class HelperFunctions {
         return new MessagesTable(statement.executeQuery(SQL)).toNiceString();
     }
 
+    /***
+     *
+     * @param statement the SQL statement object to work with
+     * @return the number of rows in the messages table
+     * @throws SQLException because intellij made me
+     */
     public static int GetMessageCount(Statement statement) throws SQLException {
         ResultSet CountRS = statement.executeQuery("SELECT count(*) FROM messages"); //get the amount of messages
         CountRS.first(); //since result is returned as a 1x1 table, look at the first and only row

@@ -2,18 +2,16 @@ package com.example.discord2test;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import jdk.jfr.Description;
 
 import java.sql.*;
 import java.time.Instant;
 
 public class Discord2Controller {
-
-    public static Discord2Loader loader; //a reference to our loader class. this kinda spaghetti code.
-
-    @FXML //the text field on the login screen, that the user types their udername into
-    public TextField nameField;
 
     @FXML //FXML items from the main screen
     public HBox buttonBox;
@@ -45,7 +43,8 @@ public class Discord2Controller {
 
         for (MessagesRow row : messages.getRows()) {
 
-            DisplayMessage dm = new DisplayMessage(row.Author, row.Text, row.TimeSent); //create a new display message
+            DisplayMessage dm = new DisplayMessage(row.Author, row.Text, row.TimeSent, this, row.MessageID); //create a new display message
+            dm.setColours(row.Author.equals(Globals.username)); //set its colours
             messageBox.getChildren().addAll(dm.GetHbox()); //add it onto our document
         }
 
@@ -54,16 +53,7 @@ public class Discord2Controller {
 
     }
 
-    @FXML
-    protected void onSelectButtonClick() {
 
-        try {
-            //get all the new messages, and add them to the list
-            GetNewMessages();
-        } catch (Exception e) {
-            System.err.println("You did a silly:\n" + e);
-        }
-    }
 
     public void onSubmit() throws SQLException {
 
@@ -103,12 +93,53 @@ public class Discord2Controller {
 
         for (MessagesRow row : table.getRows()) {
 
-            DisplayMessage dm = new DisplayMessage(row.Author, row.Text, row.TimeSent); //create a new display message
+            DisplayMessage dm = new DisplayMessage(row.Author, row.Text, row.TimeSent, this, row.MessageID); //create a new display message
+
+            //if the row has the same author as our current username, it will be coloured red. otherwise, blue
+            dm.setColours(row.Author.equals(Globals.username));
+
             box.getChildren().addAll(dm.GetHbox()); //add it onto our document
         }
 
     }
 
+    @Description("If a key is pressed in the message field, if its enter, forward to onSubmit()")
+    public void onKeyPressed_MessageField(KeyEvent keyEvent) throws SQLException {
+        if (keyEvent.getCode() == KeyCode.ENTER) onSubmit();
+    }
+
+    public void onUpvote(int MessageID){
+        System.out.printf("Message with id %d was upvoted\n", MessageID);
+
+        try { //god i hate java spaghetti code
+            UpdateDatabaseAboutVote(MessageID, true);
+        } catch (SQLException e) {
+            System.err.println("Done oopsy " + e);
+        }
+    }
+
+    public void onDownvote(int MessageID) {
+        System.out.printf("Message with id %d was downvoted\n", MessageID);
+
+        try { //god i hate java spaghetti code
+            UpdateDatabaseAboutVote(MessageID, false);
+        } catch (SQLException e) {
+            System.err.println("Done oopsy " + e);
+        }
+    }
+
+    public void UpdateDatabaseAboutVote(int MessageID, boolean upvote) throws SQLException {
+
+        //firstly, see if we're upvoting or downvoting.
+        int voteToAdd;
+        if (upvote) voteToAdd = 1;
+        else voteToAdd = -1;
+
+        //generate an update statement
+        final String updateStatement = String.format("UPDATE messages SET VoteSum = VoteSum + %d WHERE MessageID = %d", voteToAdd, MessageID);
+
+        statement.executeUpdate(updateStatement);
+    }
 }
 
 

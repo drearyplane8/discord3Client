@@ -27,7 +27,7 @@
         </padding>
 
         <TextField text="Username" fx:id="nameField" prefWidth="400" prefHeight="30" maxWidth="500" maxHeight="40"
-                   alignment="CENTER"/>
+                   alignment="CENTER" onKeyPressed="#onKeyPressed"/>
         <!-- some display weirdness: so i made it max height -->
         <Button text="Connect" onAction="#onConnect">
             <VBox.margin>
