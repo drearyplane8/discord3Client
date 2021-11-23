@@ -14,17 +14,18 @@ import java.util.Locale;
 /***
  * A class that exists to take the data from a MessageRow and put it into a nice javafx format.
  */
-public class DisplayMessage {
+public class ProcessedMessage {
 
     private int MessageID;
 
     private Text author, text, date;
 
-    private final HBox VoteArrows = new HBox();
+    private VoteButtons buttons; //buttons is a new holder class for some stuff to tidy up this class: its too damn big
 
-    private static final double BUTTON_HEIGHT = 25, BUTTON_WIDTH = 25;
 
-    public DisplayMessage(String author, String text, Instant date, Discord2Controller controller, int MessageID) {
+    public ProcessedMessage(String author, String text, Instant date, Discord2Controller controller, int MessageID) {
+
+        buttons = new VoteButtons(controller, this); //set up our new buttons class?
 
         this.MessageID = MessageID;
 
@@ -36,15 +37,6 @@ public class DisplayMessage {
 
         this.date = new Text(formatted);
 
-        Button up = new Button("^");
-        up.setOnAction(actionEvent -> controller.onUpvote(MessageID)); //set up upvote and downvote arrows linked to our
-        SetUpButton(up);
-
-        Button down = new Button("v");
-        down.setOnAction(actionEvent -> controller.onDownvote(MessageID));
-        SetUpButton(down);
-
-        VoteArrows.getChildren().addAll(up, down); //add our arrows to their vbox so they stand up on top of each other
 
     }
 
@@ -68,42 +60,44 @@ public class DisplayMessage {
 
     public HBox GetHbox() { //returns a HBOX with the three texts in it - javafx shits the bed if you try add duplicate kids
                             //and the vote arrows
-        return new HBox(8, author, text, date, VoteArrows);
+        return new HBox(8, author, text, date, buttons.getBox());
 
     }
 
-    public void SetUpButton(Button button){
-
-        button.setMinHeight(BUTTON_HEIGHT);
-        button.setMaxHeight(BUTTON_HEIGHT);
-
-        button.setMinWidth(BUTTON_WIDTH);
-        button.setMaxWidth(BUTTON_WIDTH);
-
+    /**
+     *
+     * @param arrow a string. put in "up" for upvote arrow and "down" for downvote arrow
+     * @return the called for button
+     */
+    public Button GetVoteArrow(String arrow){
+        if(arrow.equals("up")) return buttons.getUp();
+        else if(arrow.equals("down")) return buttons.getDown();
+        else throw new IllegalArgumentException("you put in the wrong argument to GetVoteArrow");
     }
+
+
 
     public Text getAuthor() {
         return author;
     }
-
     public void setAuthor(Text author) {
         this.author = author;
     }
-
     public Text getText() {
         return text;
     }
-
     public void setText(Text text) {
         this.text = text;
     }
-
     public Text getDate() {
         return date;
     }
-
     public void setDate(Text date) {
         this.date = date;
+    }
+
+    public VoteButtons getButtons() {
+        return buttons;
     }
 }
 
@@ -114,5 +108,4 @@ class colours {
             authorIsSomeoneElse = Color.BLUE,
             content = Color.BLACK,
             date = Color.color(0.5f, 0.5f, 0.5f);
-
 }

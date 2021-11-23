@@ -1,6 +1,7 @@
 package com.example.discord2test;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -10,6 +11,7 @@ import jdk.jfr.Description;
 
 import java.sql.*;
 import java.time.Instant;
+import java.util.*;
 
 public class Discord2Controller {
 
@@ -25,8 +27,14 @@ public class Discord2Controller {
     //other variables
     private int MessageCount;
 
+    //we're going to use a dictionary to hold our messages, so accessing them by message ID is an O(1) operation
+    //but java is a  so Dictionary is obsolete, we're using a map
+    private final HashMap<Integer, ProcessedMessage> ProcessedMessages = new HashMap<>();
+
     @FXML
-    public void initialize() throws SQLException { //set up the connection when we load the form, so the whole
+    public void initialize() throws SQLException {
+
+        //set up the connection when we load the form, so the whole
         //script has access to it
         connection = DriverManager.getConnection(Globals.URL, Globals.USERNAME, Globals.PASSWORD);
         statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -39,20 +47,16 @@ public class Discord2Controller {
         ResultSet rs = statement.executeQuery("select * from messages");
         MessagesTable messages = new MessagesTable(rs);
 
+        //clear anything thats currently in the messagebox, not that there should be anything there
         messageBox.getChildren().clear();
 
-        for (MessagesRow row : messages.getRows()) {
+        //call the function to wrap the table up into a vbox and display it
+        DisplayMessageTableInVBox(messages, messageBox, false);
 
-            DisplayMessage dm = new DisplayMessage(row.Author, row.Text, row.TimeSent, this, row.MessageID); //create a new display message
-            dm.setColours(row.Author.equals(Globals.username)); //set its colours
-            messageBox.getChildren().addAll(dm.GetHbox()); //add it onto our document
-        }
-
-        //fetch the amount of messages currently and store it in the database
+        //fetch the amount of messages currently and store it
         MessageCount = HelperFunctions.GetMessageCount(statement);
 
     }
-
 
 
     public void onSubmit() throws SQLException {
@@ -71,11 +75,14 @@ public class Discord2Controller {
     }
 
     public void GetNewMessages() throws SQLException {
+
+        //get the amount of messages currently in the database
         int currcount = HelperFunctions.GetMessageCount(statement);
 
+        //if the amount from the database is greater than our client's idea of how many messages have been sent
         if (currcount > MessageCount) {
-            //get and display all the new messages we have recieved
 
+            //get and display all the new messages we have received
             String limitStatement = String.format("SELECT * FROM messages LIMIT %d OFFSET %d",
                     Integer.MAX_VALUE, MessageCount);
 
@@ -83,22 +90,25 @@ public class Discord2Controller {
             MessagesTable diffTable = new MessagesTable(statement.executeQuery(limitStatement));
 
             //send them to be displayed, with the order to not clear what's already there.
-            MessageTableToVbox(diffTable, messageBox, false);
+            DisplayMessageTableInVBox(diffTable, messageBox, false);
         }
     }
 
-    public void MessageTableToVbox(MessagesTable table, VBox box, boolean clear) {
+    public void DisplayMessageTableInVBox(MessagesTable table, VBox box, boolean clear) {
 
         if (clear) box.getChildren().clear();
 
         for (MessagesRow row : table.getRows()) {
 
-            DisplayMessage dm = new DisplayMessage(row.Author, row.Text, row.TimeSent, this, row.MessageID); //create a new display message
+            ProcessedMessage pm = new ProcessedMessage(row.Author, row.Text, row.TimeSent, this, row.MessageID); //create a new processed message
 
             //if the row has the same author as our current username, it will be coloured red. otherwise, blue
-            dm.setColours(row.Author.equals(Globals.username));
+            pm.setColours(row.Author.equals(Globals.username));
 
-            box.getChildren().addAll(dm.GetHbox()); //add it onto our document
+            box.getChildren().addAll(pm.GetHbox()); //add it onto our document
+
+            //store the processed message in the hashmap with the message ID as the key
+            ProcessedMessages.put(pm.getMessageID(), pm);
         }
 
     }
@@ -108,31 +118,73 @@ public class Discord2Controller {
         if (keyEvent.getCode() == KeyCode.ENTER) onSubmit();
     }
 
-    public void onUpvote(int MessageID){
-        System.out.printf("Message with id %d was upvoted\n", MessageID);
+    //a lot of code is copy-pasted here, there's likely a more efficient way of doing it but can I be bothered?
+    public void onUpvote(int MessageID) {
+        try {
+            //get the VoteButtons class from the PM class our ID refers to, its all we need
+            VoteButtons buttons = ProcessedMessages.get(MessageID).getButtons();
 
-        try { //god i hate java spaghetti code
-            UpdateDatabaseAboutVote(MessageID, true);
-        } catch (SQLException e) {
-            System.err.println("Done oopsy " + e);
+            if (buttons.isUpPressed()) {
+                //button has been pressed, un-upvote
+                System.out.printf("Un-upvoting message%d\n", MessageID);
+                UpdateDatabaseAboutVote(MessageID, false);
+            } else {
+                //button has not been pressed, upvote
+                System.out.printf("Upvoting message %d\n", MessageID);
+                UpdateDatabaseAboutVote(MessageID, true);
+            }
+            //flip the boolean and change the colours
+            buttons.setUpPressed(!buttons.isUpPressed());
+            UpdateButtonColours(buttons);
+
+        } catch (Exception e) {
+            System.err.println("done oopsy in upvote" + e);
         }
     }
 
     public void onDownvote(int MessageID) {
-        System.out.printf("Message with id %d was downvoted\n", MessageID);
+        try {
+            //get the VoteButtons class from the PM class our ID refers to, its all we need
+            VoteButtons buttons = ProcessedMessages.get(MessageID).getButtons();
 
-        try { //god i hate java spaghetti code
-            UpdateDatabaseAboutVote(MessageID, false);
-        } catch (SQLException e) {
-            System.err.println("Done oopsy " + e);
+            if (buttons.isDownPressed()) {
+                //button has been pressed, un-downvote
+                System.out.printf("Un-downvote message%d\n", MessageID);
+                UpdateDatabaseAboutVote(MessageID, true);
+            } else {
+                //button has not been pressed, upvote
+                System.out.printf("downvoting message %d\n", MessageID);
+                UpdateDatabaseAboutVote(MessageID, false);
+            }
+            //flip the boolean and change the colours
+            buttons.setDownPressed(!buttons.isDownPressed());
+            UpdateButtonColours(buttons);
+
+        } catch (Exception e) {
+            System.err.println("done oopsy in upvote" + e);
         }
     }
 
-    public void UpdateDatabaseAboutVote(int MessageID, boolean upvote) throws SQLException {
+    public void UpdateButtonColours(VoteButtons buttons){
+
+        if (buttons.isUpPressed()){ //if the upvote button has been pressed, it should be orange.
+            buttons.getUp().setStyle("-fx-background-color: orange");
+        } else { //otherwise it should be grey
+            buttons.getUp().setStyle(null);
+        }
+
+        if(buttons.isDownPressed()){ //if the downvote button is pressed, it should be blue
+            buttons.getDown().setStyle("-fx-background-color: blue");
+        }else { //otherwise, it should be grey
+            buttons.getDown().setStyle(null);
+        }
+    }
+
+    public void UpdateDatabaseAboutVote(int MessageID, boolean positive) throws SQLException {
 
         //firstly, see if we're upvoting or downvoting.
         int voteToAdd;
-        if (upvote) voteToAdd = 1;
+        if (positive) voteToAdd = 1;
         else voteToAdd = -1;
 
         //generate an update statement

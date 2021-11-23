@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+
+<!-- pop the entire page in a scroll pane, its the easiets -->
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.discord2test.Discord2Controller">
+
+    <BorderPane>
+
+
+        <padding>
+            <Insets top="10" bottom="10" left="10" right="10"/>
+        </padding>
+
+
+        <center>
+            <VBox>
+                <VBox fx:id="messageBox">
+
+                </VBox>
+            </VBox>
+        </center>
+
+        <bottom>
+            <HBox alignment="BOTTOM_LEFT" fx:id="buttonBox">
+                <TextField text="Send a message" fx:id="messageInputField" alignment="BOTTOM_LEFT" prefWidth="500"
+                           prefHeight="30" onKeyPressed="#onKeyPressed_MessageField"/>
+                <Button text="send" onAction="#onSubmit"/>
+            </HBox>
+        </bottom>
+
+    </BorderPane>
+
+</ScrollPane>
