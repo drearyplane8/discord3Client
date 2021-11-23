@@ -6,10 +6,10 @@ import javafx.scene.layout.HBox;
 
 public class VoteButtons {
 
-    private HBox box;
+    private final HBox box = new HBox();
 
-    private Button up;
-    private Button down;
+    private final Button up;
+    private final Button down;
 
     private boolean upPressed;
     private boolean downPressed;
@@ -17,11 +17,11 @@ public class VoteButtons {
     private static final double BUTTON_HEIGHT = 25, BUTTON_WIDTH = 25;
 
     public VoteButtons(Discord2Controller controller, ProcessedMessage owner) {
-        Button up = new Button("^");
+        up = new Button("^");
         up.setOnAction(actionEvent -> controller.onUpvote(owner.getMessageID())); //set up upvote and downvote arrows linked to our PM class
         SetUpButton(up);
 
-        Button down = new Button("v");
+        down = new Button("v");
         down.setOnAction(actionEvent -> controller.onDownvote(owner.getMessageID()));
         SetUpButton(down);
 

@@ -47,11 +47,8 @@ public class Discord2Controller {
         ResultSet rs = statement.executeQuery("select * from messages");
         MessagesTable messages = new MessagesTable(rs);
 
-        //clear anything thats currently in the messagebox, not that there should be anything there
-        messageBox.getChildren().clear();
-
         //call the function to wrap the table up into a vbox and display it
-        DisplayMessageTableInVBox(messages, messageBox, false);
+        DisplayMessageTableInVBox(messages, messageBox, true);
 
         //fetch the amount of messages currently and store it
         MessageCount = HelperFunctions.GetMessageCount(statement);
@@ -100,7 +97,7 @@ public class Discord2Controller {
 
         for (MessagesRow row : table.getRows()) {
 
-            ProcessedMessage pm = new ProcessedMessage(row.Author, row.Text, row.TimeSent, this, row.MessageID); //create a new processed message
+            ProcessedMessage pm = new ProcessedMessage(row, this); //create a new processed message
 
             //if the row has the same author as our current username, it will be coloured red. otherwise, blue
             pm.setColours(row.Author.equals(Globals.username));
