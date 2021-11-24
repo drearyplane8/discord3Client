@@ -5,7 +5,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -18,24 +17,9 @@ public class ProcessedMessage {
     private int MessageID;
     private Text author, text, date;
     private final VoteButtons buttons; //buttons is a new holder class for some stuff to tidy up this class: its too damn big
+    public Text voteSum;
 
-
-    public ProcessedMessage(String author, String text, Instant date, Discord2Controller controller, int MessageID) {
-
-        buttons = new VoteButtons(controller, this); //set up our new buttons class
-
-        this.MessageID = MessageID;
-
-        this.author = new Text(author);
-        this.text = new Text(text);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy").withLocale(Locale.UK).withZone(ZoneId.systemDefault());
-        String formatted = formatter.format(date);
-
-        this.date = new Text(formatted);
-    }
-
-    //an alternate constructor which takes a message row, kinda makes more sense this way
+    //a constructor which takes a message row, kinda makes more sense this way
     public ProcessedMessage(MessagesRow row, Discord2Controller controller){
         buttons = new VoteButtons(controller, this); //set up our new buttons class
 
@@ -48,6 +32,13 @@ public class ProcessedMessage {
         String formatted = formatter.format(row.TimeSent);
 
         this.date = new Text(formatted);
+
+        this.voteSum = new Text(Integer.toString(row.VoteSum));
+
+    }
+
+    public void UpdateVoteSum(int newSum){
+        voteSum.setText(Integer.toString(newSum));
     }
 
     public int getMessageID() {
@@ -68,10 +59,12 @@ public class ProcessedMessage {
 
     }
 
-    public HBox GetHbox() { //returns a HBOX with the three texts in it - javafx shits the bed if you try add duplicate kids
-                            //and the vote arrows
-        return new HBox(8, author, text, date, buttons.getBox());
-    } //this class should only be called once! if charlie ever has an error because he thinks
+    public HBox GetHbox() {
+        //returns a HBOX with the three texts in it - javafx shits the bed if you try add duplicate kids
+        // and the vote arrows
+        return new HBox(8, author, text, date, buttons.getBox(), voteSum);
+    }
+    //this class should only be called once! if charlie ever has an error because he thinks
     //this method returns a stored Hbox, tell him he's stupid.
 
     //currently these getters and setters are useless, will keep them here until release so testing.

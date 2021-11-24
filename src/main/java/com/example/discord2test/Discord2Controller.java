@@ -28,7 +28,9 @@ public class Discord2Controller {
     private int MessageCount;
 
     //we're going to use a dictionary to hold our messages, so accessing them by message ID is an O(1) operation
-    //but java is a  so Dictionary is obsolete, we're using a map
+    //but java is a  so Dictionary is obsolete, we're using a HashMap
+    //because Map<> is the immutable interface class
+    //Java
     private final HashMap<Integer, ProcessedMessage> ProcessedMessages = new HashMap<>();
 
     @FXML
@@ -116,64 +118,62 @@ public class Discord2Controller {
     }
 
     //a lot of code is copy-pasted here, there's likely a more efficient way of doing it but can I be bothered?
-    public void onUpvote(int MessageID) {
+    public void onVote(int MessageID, boolean upvote) {
         try {
-            //get the VoteButtons class from the PM class our ID refers to, its all we need
-            VoteButtons buttons = ProcessedMessages.get(MessageID).getButtons();
+            //get the ProcessedMessage and the attached buttons object
+            ProcessedMessage pm = ProcessedMessages.get(MessageID);
+            VoteButtons buttons = pm.getButtons();
 
-            if (buttons.isUpPressed()) {
-                //button has been pressed, un-upvote
-                System.out.printf("Un-upvoting message%d\n", MessageID);
-                UpdateDatabaseAboutVote(MessageID, false);
+
+            //ternary operator: decide which button we're using
+            BoolButton toUse = upvote ? buttons.getUp() : buttons.getDown();
+
+            //if its been pressed already, we want to do the opposite
+            if(toUse.pressed) {
+                //so tell it to -1 if its an upvote and +1 if its a downvote
+                UpdateDatabaseAboutVote(MessageID, !upvote);
             } else {
-                //button has not been pressed, upvote
-                System.out.printf("Upvoting message %d\n", MessageID);
-                UpdateDatabaseAboutVote(MessageID, true);
+                UpdateDatabaseAboutVote(MessageID, upvote);
             }
+
             //flip the boolean and change the colours
-            buttons.setUpPressed(!buttons.isUpPressed());
+            toUse.pressed = !toUse.pressed;
             UpdateButtonColours(buttons);
+
+            //update the texts on the PM
+            UpdateVoteCountForMessage(MessageID, pm);
 
         } catch (Exception e) {
             System.err.println("done oopsy in upvote" + e);
         }
     }
 
-    public void onDownvote(int MessageID) {
-        try {
-            //get the VoteButtons class from the PM class our ID refers to, its all we need
-            VoteButtons buttons = ProcessedMessages.get(MessageID).getButtons();
+    //performance improvements could be made here, we're excessively querying the DB
+    public void UpdateVoteCountForMessage(int messageID, ProcessedMessage pm) throws SQLException {
+        //prepare and make the sql statement
+        String st = String.format("SELECT VoteSum FROM messages WHERE MessageId=%d;", messageID);
+        ResultSet rs = statement.executeQuery(st);
 
-            if (buttons.isDownPressed()) {
-                //button has been pressed, un-downvote
-                System.out.printf("Un-downvote message%d\n", MessageID);
-                UpdateDatabaseAboutVote(MessageID, true);
-            } else {
-                //button has not been pressed, upvote
-                System.out.printf("downvoting message %d\n", MessageID);
-                UpdateDatabaseAboutVote(MessageID, false);
-            }
-            //flip the boolean and change the colours
-            buttons.setDownPressed(!buttons.isDownPressed());
-            UpdateButtonColours(buttons);
+        //process the ResultSet
+        rs.first();
+        int voteSum = rs.getInt(1);
 
-        } catch (Exception e) {
-            System.err.println("done oopsy in upvote" + e);
-        }
+        //tell the ProcessedMessage about it
+        pm.UpdateVoteSum(voteSum);
     }
 
     public void UpdateButtonColours(VoteButtons buttons){
 
         if (buttons.isUpPressed()){ //if the upvote button has been pressed, it should be orange.
-            buttons.getUp().setStyle("-fx-background-color: orange");
+            buttons.getUp().button.setStyle("-fx-background-color: orange");
         } else { //otherwise it should be grey
-            buttons.getUp().setStyle(null);
+            buttons.getUp().button.setStyle(null);
         }
 
         if(buttons.isDownPressed()){ //if the downvote button is pressed, it should be blue
-            buttons.getDown().setStyle("-fx-background-color: blue");
+            buttons.getDown().button.setStyle("-fx-background-color: blue");
         }else { //otherwise, it should be grey
-            buttons.getDown().setStyle(null);
+            buttons.getDown().button.setStyle(null);
         }
     }
 

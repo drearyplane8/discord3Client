@@ -8,25 +8,25 @@ public class VoteButtons {
 
     private final HBox box = new HBox();
 
-    private final Button up;
-    private final Button down;
-
-    private boolean upPressed;
-    private boolean downPressed;
+    private final BoolButton up;
+    private final BoolButton down;
 
     private static final double BUTTON_HEIGHT = 25, BUTTON_WIDTH = 25;
 
     public VoteButtons(Discord2Controller controller, ProcessedMessage owner) {
-        up = new Button("^");
-        up.setOnAction(actionEvent -> controller.onUpvote(owner.getMessageID())); //set up upvote and downvote arrows linked to our PM class
-        SetUpButton(up);
 
-        down = new Button("v");
-        down.setOnAction(actionEvent -> controller.onDownvote(owner.getMessageID()));
-        SetUpButton(down);
+        Button upButton = new Button("^");
+        upButton.setOnAction(actionEvent -> controller.onVote(owner.getMessageID(), true)); //set up upvote and downvote arrows linked to our PM class
+        SetUpButton(upButton);
+        up = new BoolButton(upButton);
+
+        Button downButton = new Button("v");
+        downButton.setOnAction(actionEvent -> controller.onVote(owner.getMessageID(), false));
+        SetUpButton(downButton);
+        down = new BoolButton(downButton);
 
         //add them to the cheeky hbox
-        box.getChildren().addAll(up, down);
+        box.getChildren().addAll(up.button, down.button);
 
     }
 
@@ -41,25 +41,26 @@ public class VoteButtons {
     }
 
     public void setUpPressed(boolean upPressed) {
-        this.upPressed = upPressed;
+        this.up.pressed = upPressed;
     }
-    public void setDownPressed(boolean downPressed) {
-        this.downPressed = downPressed;
-    }
+    public void setDownPressed(boolean downPressed) { this.down.pressed = downPressed;}
 
     public HBox getBox() {
         return box;
     }
-    public Button getUp() {
+    public BoolButton getUp() {
         return up;
     }
-    public Button getDown() {
+    public BoolButton getDown() {
         return down;
     }
+
     public boolean isUpPressed() {
-        return upPressed;
+        return up.pressed;
     }
     public boolean isDownPressed() {
-        return downPressed;
+        return down.pressed;
     }
 }
+
+
