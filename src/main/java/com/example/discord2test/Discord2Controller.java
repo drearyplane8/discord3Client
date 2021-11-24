@@ -1,12 +1,12 @@
 package com.example.discord2test;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+
 import jdk.jfr.Description;
 
 import java.sql.*;
@@ -28,7 +28,7 @@ public class Discord2Controller {
     private int MessageCount;
 
     //we're going to use a dictionary to hold our messages, so accessing them by message ID is an O(1) operation
-    //but java is a  so Dictionary is obsolete, we're using a HashMap
+    //but java is Java so Dictionary is obsolete, we're using a HashMap
     //because Map<> is the immutable interface class
     //Java
     private final HashMap<Integer, ProcessedMessage> ProcessedMessages = new HashMap<>();
