@@ -9,8 +9,10 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
 
-<!-- pop the entire page in a scroll pane, its the easiets -->
+<!-- pop the entire page in a scroll pane, its the easiest way to add a scrollbar -->
 
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Text?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.discord2test.Discord2Controller">
 
@@ -20,6 +22,17 @@
         <padding>
             <Insets top="10" bottom="10" left="10" right="10"/>
         </padding>
+
+        <left>
+            <Pane minWidth="1920" minHeight="1080" fx:id="SearchPane" visible="false" managed="false" layoutY="20"  >
+            <!-- since this search pane is unmanaged, we need to manually set its y-coordinate -->
+                <Text text="search pane"/>
+            </Pane>
+        </left>
+
+        <right>
+            <Button text="o" onAction="#onSearchPaneOpenButtonPressed"/>
+        </right>
 
 
         <center>

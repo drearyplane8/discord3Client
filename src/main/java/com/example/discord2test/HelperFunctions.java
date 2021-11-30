@@ -4,6 +4,8 @@ import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 
 import java.sql.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class HelperFunctions {
 
@@ -41,4 +43,5 @@ public class HelperFunctions {
         return CountRS.getInt(1); //and the first and only column
 
     }
+
 }

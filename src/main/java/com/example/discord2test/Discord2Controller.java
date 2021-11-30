@@ -1,10 +1,12 @@
 package com.example.discord2test;
 
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
 import jdk.jfr.Description;
@@ -19,6 +21,12 @@ public class Discord2Controller {
     public HBox buttonBox;
     public VBox messageBox;
     public TextField messageInputField;
+    public Pane SearchPane;
+
+    //a list of everything we want to invisible when the scroll pane pulls up
+    public ArrayList<Node> mainMessageNodes = new ArrayList<>();
+    //and a list of everything that makes up the search pane
+    public ArrayList<Node> searchPaneNodes = new ArrayList<>();
 
     //JDBC - related member variables
     private Connection connection; //hold a reference to our connection and statement, this way all functions can use
@@ -26,6 +34,7 @@ public class Discord2Controller {
 
     //other variables
     private int MessageCount;
+    private boolean searchPaneOpen = false;
 
     //we're going to use a dictionary to hold our messages, so accessing them by message ID is an O(1) operation
     //but java is Java so Dictionary is obsolete, we're using a HashMap
@@ -35,6 +44,8 @@ public class Discord2Controller {
 
     @FXML
     public void initialize() throws SQLException {
+
+        SetUpVisibleLists(mainMessageNodes, searchPaneNodes);
 
         //set up the connection when we load the form, so the whole
         //script has access to it
@@ -57,6 +68,12 @@ public class Discord2Controller {
 
     }
 
+    public void SetUpVisibleLists(List<Node> main, List<Node> search){
+        main.addAll(List.of(
+                buttonBox, messageBox, messageBox));
+        search.addAll(List.of(
+                SearchPane));
+    }
 
     public void onSubmit() throws SQLException {
 
@@ -117,7 +134,7 @@ public class Discord2Controller {
         if (keyEvent.getCode() == KeyCode.ENTER) onSubmit();
     }
 
-    //a lot of code is copy-pasted here, there's likely a more efficient way of doing it but can I be bothered?
+
     public void onVote(int MessageID, boolean upvote) {
         try {
             //get the ProcessedMessage and the attached buttons object
@@ -129,7 +146,7 @@ public class Discord2Controller {
             BoolButton toUse = upvote ? buttons.getUp() : buttons.getDown();
 
             //if its been pressed already, we want to do the opposite
-            if(toUse.pressed) {
+            if (toUse.pressed) {
                 //so tell it to -1 if its an upvote and +1 if its a downvote
                 UpdateDatabaseAboutVote(MessageID, !upvote);
             } else {
@@ -162,17 +179,17 @@ public class Discord2Controller {
         pm.UpdateVoteSum(voteSum);
     }
 
-    public void UpdateButtonColours(VoteButtons buttons){
+    public void UpdateButtonColours(VoteButtons buttons) {
 
-        if (buttons.isUpPressed()){ //if the upvote button has been pressed, it should be orange.
+        if (buttons.isUpPressed()) { //if the upvote button has been pressed, it should be orange.
             buttons.getUp().button.setStyle("-fx-background-color: orange");
         } else { //otherwise it should be grey
             buttons.getUp().button.setStyle(null);
         }
 
-        if(buttons.isDownPressed()){ //if the downvote button is pressed, it should be blue
+        if (buttons.isDownPressed()) { //if the downvote button is pressed, it should be blue
             buttons.getDown().button.setStyle("-fx-background-color: blue");
-        }else { //otherwise, it should be grey
+        } else { //otherwise, it should be grey
             buttons.getDown().button.setStyle(null);
         }
     }
@@ -188,6 +205,26 @@ public class Discord2Controller {
         final String updateStatement = String.format("UPDATE messages SET VoteSum = VoteSum + %d WHERE MessageID = %d", voteToAdd, MessageID);
 
         statement.executeUpdate(updateStatement);
+    }
+
+    public void GenerateSearchSelectStatement() {
+
+    }
+
+    //make the search panel show up when we press the button
+    public void onSearchPaneOpenButtonPressed() {
+
+        //if it's false, set it to true
+        searchPaneOpen = !searchPaneOpen;
+
+        for (Node mainNode : mainMessageNodes) {
+            mainNode.setVisible(!searchPaneOpen);
+            //if the search pane is open, the main pane should not be open, hence not
+        } //and vice versa
+        for(Node searchNode : searchPaneNodes){
+            searchNode.setVisible(searchPaneOpen);
+        }
+
     }
 }
 
