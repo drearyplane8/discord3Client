@@ -28,6 +28,14 @@ public class Discord2Controller {
     //and a list of everything that makes up the search pane
     public ArrayList<Node> searchPaneNodes = new ArrayList<>();
 
+    //All the text fields in the search section
+    public TextField keywordInputField,
+                     userInputField,
+                     dateLowerBoundInputField,
+                     dateUpperBoundInputField,
+                     likesLowerBoundInputField,
+                     likesUpperBoundInputField;
+
     //JDBC - related member variables
     private Connection connection; //hold a reference to our connection and statement, this way all functions can use
     private Statement statement;   //them, saves overhead.
@@ -70,9 +78,18 @@ public class Discord2Controller {
 
     public void SetUpVisibleLists(List<Node> main, List<Node> search){
         main.addAll(List.of(
-                buttonBox, messageBox, messageBox));
+                buttonBox,
+                messageBox,
+                messageInputField));
+
         search.addAll(List.of(
-                SearchPane));
+                SearchPane,
+                keywordInputField,
+                userInputField,
+                dateLowerBoundInputField,
+                dateUpperBoundInputField,
+                likesLowerBoundInputField,
+                likesUpperBoundInputField));
     }
 
     public void onSubmit() throws SQLException {

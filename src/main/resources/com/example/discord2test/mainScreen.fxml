@@ -13,6 +13,7 @@
 
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.control.RadioButton?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.discord2test.Discord2Controller">
 
@@ -24,9 +25,59 @@
         </padding>
 
         <left>
-            <Pane minWidth="1920" minHeight="1080" fx:id="SearchPane" visible="false" managed="false" layoutY="20"  >
-            <!-- since this search pane is unmanaged, we need to manually set its y-coordinate -->
-                <Text text="search pane"/>
+            <Pane minWidth="1920" minHeight="1080" fx:id="SearchPane" visible="false" managed="false" layoutY="20">
+                <!-- since this search pane is unmanaged, we need to manually set its y-coordinate -->
+                <VBox>
+
+                    <HBox> <!--this hbox holds the search nodes-->
+                        <VBox>
+                            <HBox>
+                                <Text text="Keyword: "/>
+                                <TextField fx:id="keywordInputField"/>
+                            </HBox>
+                            <HBox>
+                                <Text text="By User: "/>
+                                <TextField fx:id="userInputField"/>
+                            </HBox>
+                        </VBox>
+                        <VBox>
+                            <HBox>
+                                <Text text="Date Range: From"/>
+                                <TextField fx:id="dateLowerBoundInputField" prefColumnCount="6"/>
+                                <Text text=" to "/>
+                                <TextField fx:id="dateUpperBoundInputField" prefColumnCount="6"/>
+                            </HBox>
+                            <HBox>
+                                <Text text="Likes: From"/>
+                                <TextField prefColumnCount="6" fx:id="likesLowerBoundInputField"/>
+                                <Text text=" to "/>
+                                <TextField fx:id="likesUpperBoundInputField" prefColumnCount="6"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                    <HBox>
+                        <VBox>
+                            <HBox>
+                                <RadioButton/>
+                                <Text text="Likes: High-Low"/>
+                            </HBox>
+                            <HBox>
+                                <RadioButton/>
+                                <Text text="Likes: Low-High"/>
+                            </HBox>
+                        </VBox>
+                        <VBox>
+                            <HBox>
+                                <RadioButton/>
+                                <Text text="Time Sent: Oldest-Newest"/>
+                            </HBox>
+                            <HBox>
+                                <RadioButton/>
+                                <Text text="Time Sent: Newest-Oldest"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
             </Pane>
         </left>
 
