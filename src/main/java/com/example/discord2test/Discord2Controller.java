@@ -5,6 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -21,7 +22,7 @@ public class Discord2Controller {
     public HBox buttonBox;
     public VBox messageBox;
     public TextField messageInputField;
-    public Pane SearchPane;
+    public BorderPane SearchPane;
 
     //a list of everything we want to invisible when the scroll pane pulls up
     public ArrayList<Node> mainMessageNodes = new ArrayList<>();
@@ -82,14 +83,7 @@ public class Discord2Controller {
                 messageBox,
                 messageInputField));
 
-        search.addAll(List.of(
-                SearchPane,
-                keywordInputField,
-                userInputField,
-                dateLowerBoundInputField,
-                dateUpperBoundInputField,
-                likesLowerBoundInputField,
-                likesUpperBoundInputField));
+        search.addAll(List.of(SearchPane));
     }
 
     public void onSubmit() throws SQLException {
