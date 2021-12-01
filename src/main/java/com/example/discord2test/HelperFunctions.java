@@ -39,7 +39,7 @@ public class HelperFunctions {
      */
     public static int GetMessageCount(Statement statement) throws SQLException {
         ResultSet CountRS = statement.executeQuery("SELECT count(*) FROM messages"); //get the amount of messages
-        CountRS.first(); //since result is returned as a 1x1 table, look at the first and only row
+        CountRS.first();                     //since result is returned as a 1x1 table, look at the first and only row
         return CountRS.getInt(1); //and the first and only column
 
     }
