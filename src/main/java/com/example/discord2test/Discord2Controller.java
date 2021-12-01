@@ -2,6 +2,7 @@ package com.example.discord2test;
 
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -36,6 +37,8 @@ public class Discord2Controller {
                      dateUpperBoundInputField,
                      likesLowerBoundInputField,
                      likesUpperBoundInputField;
+
+    public Button mainPaneSearchPaneButton;
 
     //JDBC - related member variables
     private Connection connection; //hold a reference to our connection and statement, this way all functions can use
@@ -81,7 +84,8 @@ public class Discord2Controller {
         main.addAll(List.of(
                 buttonBox,
                 messageBox,
-                messageInputField));
+                messageInputField,
+                mainPaneSearchPaneButton));
 
         search.addAll(List.of(SearchPane));
     }
@@ -230,10 +234,12 @@ public class Discord2Controller {
 
         for (Node mainNode : mainMessageNodes) {
             mainNode.setVisible(!searchPaneOpen);
+            mainNode.setManaged(!searchPaneOpen);
             //if the search pane is open, the main pane should not be open, hence not
         } //and vice versa
         for(Node searchNode : searchPaneNodes){
             searchNode.setVisible(searchPaneOpen);
+            searchNode.setManaged(searchPaneOpen);
         }
 
     }

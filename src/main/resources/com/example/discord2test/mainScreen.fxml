@@ -14,6 +14,7 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.discord2test.Discord2Controller">
 
@@ -25,9 +26,14 @@
         </padding>
 
         <left>
-            <BorderPane minWidth="1920" minHeight="1080" fx:id="SearchPane" visible="false" managed="false"
+            <BorderPane fx:id="SearchPane" visible="false" managed="false"
                         layoutY="20">
                 <!-- since this search pane is unmanaged, we need to manually set its y-coordinate -->
+
+                <right>
+                    <Button text="o" onAction="#onSearchPaneOpenButtonPressed"/>
+                </right>
+
                 <center>
                     <VBox>
 
@@ -60,21 +66,37 @@
                         <HBox>
                             <VBox>
                                 <HBox>
-                                    <RadioButton/>
+                                    <RadioButton fx:id="likesHighToLowButton">
+                                        <toggleGroup>
+                                            <ToggleGroup fx:id="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
                                     <Text text="Likes: High-Low"/>
                                 </HBox>
                                 <HBox>
-                                    <RadioButton/>
+                                    <RadioButton>
+                                        <toggleGroup>
+                                            <fx:reference source="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
                                     <Text text="Likes: Low-High"/>
                                 </HBox>
                             </VBox>
                             <VBox>
                                 <HBox>
-                                    <RadioButton/>
+                                    <RadioButton>
+                                        <toggleGroup>
+                                            <fx:reference source="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
                                     <Text text="Time Sent: Oldest-Newest"/>
                                 </HBox>
                                 <HBox>
-                                    <RadioButton/>
+                                    <RadioButton>
+                                        <toggleGroup>
+                                            <fx:reference source="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
                                     <Text text="Time Sent: Newest-Oldest"/>
                                 </HBox>
                             </VBox>
@@ -85,7 +107,7 @@
         </left>
 
         <right>
-            <Button text="o" onAction="#onSearchPaneOpenButtonPressed"/>
+            <Button fx:id="mainPaneSearchPaneButton" text="o" onAction="#onSearchPaneOpenButtonPressed"/>
         </right>
 
 

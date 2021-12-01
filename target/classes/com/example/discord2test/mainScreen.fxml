@@ -9,8 +9,12 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
 
-<!-- pop the entire page in a scroll pane, its the easiets -->
+<!-- pop the entire page in a scroll pane, its the easiest way to add a scrollbar -->
 
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.discord2test.Discord2Controller">
 
@@ -20,6 +24,91 @@
         <padding>
             <Insets top="10" bottom="10" left="10" right="10"/>
         </padding>
+
+        <left>
+            <BorderPane fx:id="SearchPane" visible="false" managed="false"
+                        layoutY="20">
+                <!-- since this search pane is unmanaged, we need to manually set its y-coordinate -->
+
+                <right>
+                    <Button text="o" onAction="#onSearchPaneOpenButtonPressed"/>
+                </right>
+
+                <center>
+                    <VBox>
+
+                        <HBox> <!--this hbox holds the search nodes-->
+                            <VBox>
+                                <HBox>
+                                    <Text text="Keyword: "/>
+                                    <TextField fx:id="keywordInputField"/>
+                                </HBox>
+                                <HBox>
+                                    <Text text="By User: "/>
+                                    <TextField fx:id="userInputField"/>
+                                </HBox>
+                            </VBox>
+                            <VBox>
+                                <HBox>
+                                    <Text text="Date Range: From"/>
+                                    <TextField fx:id="dateLowerBoundInputField" prefColumnCount="6"/>
+                                    <Text text=" to "/>
+                                    <TextField fx:id="dateUpperBoundInputField" prefColumnCount="6"/>
+                                </HBox>
+                                <HBox>
+                                    <Text text="Likes: From"/>
+                                    <TextField prefColumnCount="6" fx:id="likesLowerBoundInputField"/>
+                                    <Text text=" to "/>
+                                    <TextField fx:id="likesUpperBoundInputField" prefColumnCount="6"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                        <HBox>
+                            <VBox>
+                                <HBox>
+                                    <RadioButton fx:id="likesHighToLowButton">
+                                        <toggleGroup>
+                                            <ToggleGroup fx:id="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <Text text="Likes: High-Low"/>
+                                </HBox>
+                                <HBox>
+                                    <RadioButton>
+                                        <toggleGroup>
+                                            <fx:reference source="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <Text text="Likes: Low-High"/>
+                                </HBox>
+                            </VBox>
+                            <VBox>
+                                <HBox>
+                                    <RadioButton>
+                                        <toggleGroup>
+                                            <fx:reference source="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <Text text="Time Sent: Oldest-Newest"/>
+                                </HBox>
+                                <HBox>
+                                    <RadioButton>
+                                        <toggleGroup>
+                                            <fx:reference source="sortButtonsGroup"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <Text text="Time Sent: Newest-Oldest"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </center>
+            </BorderPane>
+        </left>
+
+        <right>
+            <Button fx:id="mainPaneSearchPaneButton" text="o" onAction="#onSearchPaneOpenButtonPressed"/>
+        </right>
 
 
         <center>
