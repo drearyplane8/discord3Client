@@ -1,20 +1,21 @@
 package com.example.discord2test;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
+import javafx.scene.text.Text;
 import jdk.jfr.Description;
 
 import java.sql.*;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 
 public class Discord2Controller {
@@ -32,13 +33,24 @@ public class Discord2Controller {
 
     //All the text fields in the search section
     public TextField keywordInputField,
-                     userInputField,
-                     dateLowerBoundInputField,
-                     dateUpperBoundInputField,
-                     likesLowerBoundInputField,
-                     likesUpperBoundInputField;
+            userInputField,
+            likesLowerBoundInputField,
+            likesUpperBoundInputField;
+
+    public DatePicker
+            dateLowerBoundInputField,
+            dateUpperBoundInputField;
+
+
+    //the radio buttons in the search section
+    public RadioButton timeSentNewestToOldestButton;
+    public RadioButton timeSentOldestToNewestButton;
+    public RadioButton likesLowToHighButton;
+    public RadioButton likesHighToLowButton;
+    public ToggleGroup sortButtonsGroup;
 
     public Button mainPaneSearchPaneButton;
+    public Text oopsyText;
 
     //JDBC - related member variables
     private Connection connection; //hold a reference to our connection and statement, this way all functions can use
@@ -80,7 +92,7 @@ public class Discord2Controller {
 
     }
 
-    public void SetUpVisibleLists(List<Node> main, List<Node> search){
+    public void SetUpVisibleLists(List<Node> main, List<Node> search) {
         main.addAll(List.of(
                 buttonBox,
                 messageBox,
@@ -237,12 +249,106 @@ public class Discord2Controller {
             mainNode.setManaged(!searchPaneOpen);
             //if the search pane is open, the main pane should not be open, hence not
         } //and vice versa
-        for(Node searchNode : searchPaneNodes){
+        for (Node searchNode : searchPaneNodes) {
             searchNode.setVisible(searchPaneOpen);
             searchNode.setManaged(searchPaneOpen);
         }
 
     }
+
+    public void onSearchButtonPressed() throws SQLException {
+
+        UpdateOopsyText(false);
+
+        StringBuilder statementBuilder = new StringBuilder("SELECT * FROM messages\nWHERE");
+
+        //get the pressed button
+        String pressedButton = (String) sortButtonsGroup.getSelectedToggle().getUserData();
+
+        //get the values from our fields
+        String keyword = keywordInputField.getText();
+        if (!keyword.equals("")) {                      //yes, i need this amount of % signs.
+            statementBuilder.append(String.format(" Content LIKE \"%%%s%%\"\nAND", keyword));
+        }
+
+        //evaluate the date field
+        LocalDate date1 = dateLowerBoundInputField.getValue(), date2 = dateUpperBoundInputField.getValue();
+
+        //if at least one of them is not null. - adjusted using De Morgens
+        if (!(date1 == null && date2 == null)) {
+            if (date1 == null) {  //if the first field is empty, use second date as upper bound with no lower bound.
+                statementBuilder.append(String.format(" TimeSent < \"%s 00:00:00\"\nAND", date2));
+            } else if (date2 == null) { //if the second field is empty: this means the first one must be full due to above statement
+                                        //so we will use the first date as a lower bound with no upper bound.
+                statementBuilder.append(String.format(" TimeSent > \"%s 00:00:00\"\nAND", date1));
+            } else { //they both have content so we will use the double bound thingy.
+                if(date1.isAfter(date2)){
+                    System.err.println("did oopsy in the validation thingy dates");
+                    UpdateOopsyText(true);
+                    return;
+                }
+                statementBuilder.append(String.format(" TimeSent BETWEEN \"%s 00:00:00\" AND \"%s 00:00:00\"\n AND", date1, date2));
+            }
+        }
+
+        //consider the vote count - will be easier just to evaluate as strings, as ints are not nullable.
+
+        String like1 = likesLowerBoundInputField.getText(), like2 = likesUpperBoundInputField.getText();
+
+        //todo validation cos im too tired
+
+        //if at least one of them is not null
+        if ( !(like1.equals("") && like2.equals("")) ){
+            if(like1.equals("")){
+                statementBuilder.append(String.format(" VoteSum < %s\nAND", like2));
+            } else if (like2.equals("")){
+                statementBuilder.append(String.format(" VoteSum > %s\nAND", like1));
+            } else {
+                statementBuilder.append(String.format(" VoteSum BETWEEN %s AND %s\nAND", like1, like2));
+            }
+        }
+
+        String author = userInputField.getText();
+        //if it's not an empty string
+        if(!author.equals("")){
+            statementBuilder.append(String.format(" Author = \"%s\"\nAND", author));
+        }
+
+        //this is spaghetti code but it lets us get rid of that hanging AND
+        statementBuilder.append(" 1=1\n");
+
+        //append the sorting bit
+
+        switch (pressedButton){
+            case "likesHighToLowButton" -> statementBuilder.append("ORDER BY VoteSum DESC;");
+            case "likesLowToHighButton" -> statementBuilder.append("ORDER BY VoteSum ASC;");
+            case "timeSentOldestToNewest" -> statementBuilder.append("ORDER BY TimeSent DESC");
+            case "timeSentNewestToOldest" -> statementBuilder.append("ORDER BY TimeSent ASC");
+            default -> System.err.println("CHARLIE DID A BIG OOPSY");
+        }
+
+        String searchStatement = statementBuilder.toString();
+
+        //lets send the search statement off to the database and see what happens:
+
+        ResultSet rs = statement.executeQuery(searchStatement);
+
+        //on a fresh result set, this will tell us whether the set is empty
+        if(!rs.isBeforeFirst()){
+            System.out.println("empty set!");
+            return;
+        }
+
+        MessagesTable table = new MessagesTable(rs);
+
+        HelperFunctions.PrintMessageTableNicely(table);
+        System.out.println("\n--------------------------------------------\n");
+    }
+
+    public void UpdateOopsyText(boolean isVisible){
+        oopsyText.setVisible(isVisible);
+    }
+
 }
 
 

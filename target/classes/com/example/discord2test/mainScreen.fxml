@@ -9,12 +9,14 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
 
-<!-- pop the entire page in a scroll pane, its the easiest way to add a scrollbar -->
-
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ToggleGroup?>
+
+
+<!-- pop the entire page in a scroll pane, its the easiest way to add a scrollbar -->
+
+<?import javafx.scene.control.DatePicker?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.discord2test.Discord2Controller">
 
@@ -25,7 +27,7 @@
             <Insets top="10" bottom="10" left="10" right="10"/>
         </padding>
 
-        <left>
+        <left> <!-- all the stuff for the search panel -->
             <BorderPane fx:id="SearchPane" visible="false" managed="false"
                         layoutY="20">
                 <!-- since this search pane is unmanaged, we need to manually set its y-coordinate -->
@@ -51,9 +53,9 @@
                             <VBox>
                                 <HBox>
                                     <Text text="Date Range: From"/>
-                                    <TextField fx:id="dateLowerBoundInputField" prefColumnCount="6"/>
+                                    <DatePicker fx:id="dateLowerBoundInputField" prefWidth="12"/>
                                     <Text text=" to "/>
-                                    <TextField fx:id="dateUpperBoundInputField" prefColumnCount="6"/>
+                                    <DatePicker fx:id="dateUpperBoundInputField" prefWidth="12"/>
                                 </HBox>
                                 <HBox>
                                     <Text text="Likes: From"/>
@@ -66,7 +68,7 @@
                         <HBox>
                             <VBox>
                                 <HBox>
-                                    <RadioButton fx:id="likesHighToLowButton">
+                                    <RadioButton userData="likesHighToLowButton" selected="true">
                                         <toggleGroup>
                                             <ToggleGroup fx:id="sortButtonsGroup"/>
                                         </toggleGroup>
@@ -74,7 +76,7 @@
                                     <Text text="Likes: High-Low"/>
                                 </HBox>
                                 <HBox>
-                                    <RadioButton>
+                                    <RadioButton userData="likesLowToHighButton">
                                         <toggleGroup>
                                             <fx:reference source="sortButtonsGroup"/>
                                         </toggleGroup>
@@ -84,7 +86,7 @@
                             </VBox>
                             <VBox>
                                 <HBox>
-                                    <RadioButton>
+                                    <RadioButton userData="timeSentOldestToNewest">
                                         <toggleGroup>
                                             <fx:reference source="sortButtonsGroup"/>
                                         </toggleGroup>
@@ -92,7 +94,7 @@
                                     <Text text="Time Sent: Oldest-Newest"/>
                                 </HBox>
                                 <HBox>
-                                    <RadioButton>
+                                    <RadioButton userData="timeSentNewestToOldest">
                                         <toggleGroup>
                                             <fx:reference source="sortButtonsGroup"/>
                                         </toggleGroup>
@@ -100,6 +102,10 @@
                                     <Text text="Time Sent: Newest-Oldest"/>
                                 </HBox>
                             </VBox>
+                        </HBox>
+                        <HBox>
+                            <Button text="search" onAction="#onSearchButtonPressed"/>
+                            <Text text="error" fx:id="oopsyText" visible="false" fill="red"/>
                         </HBox>
                     </VBox>
                 </center>

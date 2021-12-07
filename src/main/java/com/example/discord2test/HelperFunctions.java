@@ -14,6 +14,13 @@ public class HelperFunctions {
         return String.format("JDBC version %d.%d\n", metaData.getJDBCMajorVersion(), metaData.getJDBCMinorVersion());
     }
 
+    //this is purely a debug function now so we can just run it with false.
+    public static void PrintMessageTableNicely(MessagesTable table){
+        for(MessagesRow row : table.getRows()){
+            PrintMessageNicely(row, false);
+        }
+    }
+
     /***
      *
      * @param row the message row to print nicely
@@ -43,5 +50,6 @@ public class HelperFunctions {
         return CountRS.getInt(1); //and the first and only column
 
     }
+
 
 }
