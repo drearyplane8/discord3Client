@@ -1,6 +1,5 @@
 package com.example.discord2test;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -9,62 +8,55 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
 import javafx.scene.text.Text;
 import jdk.jfr.Description;
 
 import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Discord2Controller {
-
-    @FXML //FXML items from the main screen
-    public HBox buttonBox;
-    public VBox messageBox;
-    public TextField messageInputField;
-    public BorderPane SearchPane;
-
-    //a list of everything we want to invisible when the scroll pane pulls up
-    public ArrayList<Node> mainMessageNodes = new ArrayList<>();
-    //and a list of everything that makes up the search pane
-    public ArrayList<Node> searchPaneNodes = new ArrayList<>();
-
-    //All the text fields in the search section
-    public TextField keywordInputField,
-            userInputField,
-            likesLowerBoundInputField,
-            likesUpperBoundInputField;
-
-    public DatePicker
-            dateLowerBoundInputField,
-            dateUpperBoundInputField;
-
-
-    //the radio buttons in the search section
-    public RadioButton timeSentNewestToOldestButton;
-    public RadioButton timeSentOldestToNewestButton;
-    public RadioButton likesLowToHighButton;
-    public RadioButton likesHighToLowButton;
-    public ToggleGroup sortButtonsGroup;
-
-    public Button mainPaneSearchPaneButton;
-    public Text oopsyText;
-
-    //JDBC - related member variables
-    private Connection connection; //hold a reference to our connection and statement, this way all functions can use
-    private Statement statement;   //them, saves overhead.
-
-    //other variables
-    private int MessageCount;
-    private boolean searchPaneOpen = false;
 
     //we're going to use a dictionary to hold our messages, so accessing them by message ID is an O(1) operation
     //but java is Java so Dictionary is obsolete, we're using a HashMap
     //because Map<> is the immutable interface class
     //Java
     private final HashMap<Integer, ProcessedMessage> ProcessedMessages = new HashMap<>();
+    @FXML //FXML items from the main screen
+    public HBox buttonBox;
+    public VBox messageBox;
+    public TextField messageInputField;
+    public BorderPane SearchPane;
+    //a list of everything we want to invisible when the scroll pane pulls up
+    public ArrayList<Node> mainMessageNodes = new ArrayList<>();
+    //and a list of everything that makes up the search pane
+    public ArrayList<Node> searchPaneNodes = new ArrayList<>();
+    //All the text fields in the search section
+    public TextField keywordInputField,
+            userInputField,
+            likesLowerBoundInputField,
+            likesUpperBoundInputField;
+    public DatePicker
+            dateLowerBoundInputField,
+            dateUpperBoundInputField;
+    //the radio buttons in the search section
+    public RadioButton timeSentNewestToOldestButton;
+    public RadioButton timeSentOldestToNewestButton;
+    public RadioButton likesLowToHighButton;
+    public RadioButton likesHighToLowButton;
+    public ToggleGroup sortButtonsGroup;
+    public Button mainPaneSearchPaneButton;
+    public Text oopsyText;
+    public VBox searchMessageBox;
+    //JDBC - related member variables
+    private Connection connection; //hold a reference to our connection and statement, this way all functions can use
+    private Statement statement;   //them, saves overhead.
+    //other variables
+    private int MessageCount;
+    private boolean searchPaneOpen = false;
 
     @FXML
     public void initialize() throws SQLException {
@@ -99,7 +91,7 @@ public class Discord2Controller {
                 messageInputField,
                 mainPaneSearchPaneButton));
 
-        search.addAll(List.of(SearchPane));
+        search.addAll(List.of(SearchPane, searchMessageBox));
     }
 
     public void onSubmit() throws SQLException {
@@ -256,16 +248,19 @@ public class Discord2Controller {
 
     }
 
+    //this is an absolute monster of a function.
     public void onSearchButtonPressed() throws SQLException {
 
-        UpdateOopsyText(false);
+        //clear the error text initially
+        UpdateOopsyText("", false);
 
+        //start a StringBuilder with what'll eventually be our search statement
         StringBuilder statementBuilder = new StringBuilder("SELECT * FROM messages\nWHERE");
 
-        //get the pressed button
+        //get the pressed button's UserData so we know which one we've pressed
         String pressedButton = (String) sortButtonsGroup.getSelectedToggle().getUserData();
 
-        //get the values from our fields
+        //get the values from our keyword field
         String keyword = keywordInputField.getText();
         if (!keyword.equals("")) {                      //yes, i need this amount of % signs.
             statementBuilder.append(String.format(" Content LIKE \"%%%s%%\"\nAND", keyword));
@@ -274,43 +269,29 @@ public class Discord2Controller {
         //evaluate the date field
         LocalDate date1 = dateLowerBoundInputField.getValue(), date2 = dateUpperBoundInputField.getValue();
 
-        //if at least one of them is not null. - adjusted using De Morgens
+        //if at least one of them is not null. - adjusted using De Morgen's
         if (!(date1 == null && date2 == null)) {
-            if (date1 == null) {  //if the first field is empty, use second date as upper bound with no lower bound.
-                statementBuilder.append(String.format(" TimeSent < \"%s 00:00:00\"\nAND", date2));
-            } else if (date2 == null) { //if the second field is empty: this means the first one must be full due to above statement
-                                        //so we will use the first date as a lower bound with no upper bound.
-                statementBuilder.append(String.format(" TimeSent > \"%s 00:00:00\"\nAND", date1));
-            } else { //they both have content so we will use the double bound thingy.
-                if(date1.isAfter(date2)){
-                    System.err.println("did oopsy in the validation thingy dates");
-                    UpdateOopsyText(true);
-                    return;
-                }
-                statementBuilder.append(String.format(" TimeSent BETWEEN \"%s 00:00:00\" AND \"%s 00:00:00\"\n AND", date1, date2));
+            try {
+                statementBuilder.append(GetDateComponentOfSearchStatement(date1, date2));
+            } catch (UnsupportedOperationException e) {
+                System.err.println("Date range is wrong.");
+                UpdateOopsyText("Error: Invalid date range (are your dates the wrong way round?)", true);
             }
         }
 
         //consider the vote count - will be easier just to evaluate as strings, as ints are not nullable.
 
         String like1 = likesLowerBoundInputField.getText(), like2 = likesUpperBoundInputField.getText();
-
-        //todo validation cos im too tired
-
-        //if at least one of them is not null
-        if ( !(like1.equals("") && like2.equals("")) ){
-            if(like1.equals("")){
-                statementBuilder.append(String.format(" VoteSum < %s\nAND", like2));
-            } else if (like2.equals("")){
-                statementBuilder.append(String.format(" VoteSum > %s\nAND", like1));
-            } else {
-                statementBuilder.append(String.format(" VoteSum BETWEEN %s AND %s\nAND", like1, like2));
-            }
+        try {
+            statementBuilder.append(GetLikeComponentOfSearchStatement(like1, like2));
+        } catch (NumberFormatException e) {
+            System.err.println("one parameter wasnt an int");
+            UpdateOopsyText("Error: Invalid values for the votes field. Make sure they contain only 0-9 and the minus '-' sign", true);
         }
 
         String author = userInputField.getText();
         //if it's not an empty string
-        if(!author.equals("")){
+        if (!author.equals("")) {
             statementBuilder.append(String.format(" Author = \"%s\"\nAND", author));
         }
 
@@ -319,11 +300,11 @@ public class Discord2Controller {
 
         //append the sorting bit
 
-        switch (pressedButton){
+        switch (pressedButton) {
             case "likesHighToLowButton" -> statementBuilder.append("ORDER BY VoteSum DESC;");
             case "likesLowToHighButton" -> statementBuilder.append("ORDER BY VoteSum ASC;");
-            case "timeSentOldestToNewest" -> statementBuilder.append("ORDER BY TimeSent DESC");
-            case "timeSentNewestToOldest" -> statementBuilder.append("ORDER BY TimeSent ASC");
+            case "timeSentOldestToNewest" -> statementBuilder.append("ORDER BY TimeSent DESC;");
+            case "timeSentNewestToOldest" -> statementBuilder.append("ORDER BY TimeSent ASC;");
             default -> System.err.println("CHARLIE DID A BIG OOPSY");
         }
 
@@ -334,19 +315,78 @@ public class Discord2Controller {
         ResultSet rs = statement.executeQuery(searchStatement);
 
         //on a fresh result set, this will tell us whether the set is empty
-        if(!rs.isBeforeFirst()){
-            System.out.println("empty set!");
+        if (!rs.isBeforeFirst()) {
+            //quickly and dirtily display on the screen if nothing is found.
+            searchMessageBox.getChildren().add(new Text("No results found."));
             return;
         }
 
         MessagesTable table = new MessagesTable(rs);
+        DisplayMessageTableInVBox(table, searchMessageBox, true);
 
         HelperFunctions.PrintMessageTableNicely(table);
         System.out.println("\n--------------------------------------------\n");
     }
 
-    public void UpdateOopsyText(boolean isVisible){
+    public void UpdateOopsyText(String contents, boolean isVisible) {
+        oopsyText.setText(contents);
         oopsyText.setVisible(isVisible);
+    }
+
+    public String GetDateComponentOfSearchStatement(LocalDate date1, LocalDate date2) throws UnsupportedOperationException {
+        StringBuilder builder = new StringBuilder();
+
+        if (date1 == null) {  //if the first field is empty, use second date as upper bound with no lower bound.
+            //Hard less than midnight the next day will return any messages sent on the day input, to be consistent
+            //with the BETWEEN operator.
+            builder.append(String.format(" TimeSent < \"%s 00:00:00\"\nAND", HelperFunctions.nextDay(date2)));
+
+        } else if (date2 == null) { //if the second field is empty: this means the first one must be full due to above statement
+            //so we will use the first date as a lower bound with no upper bound.
+            //this one is fine: it will include any messages sent on the included day.
+            builder.append(String.format(" TimeSent >= \"%s 00:00:00\"\nAND", date1));
+
+        } else { //they both have content so we will use the double bound thingy.
+            if (date1.isAfter(date2)) {
+                throw new UnsupportedOperationException("Invalid date range.");
+            }
+            builder.append(String.format(" TimeSent BETWEEN \"%s 00:00:00\" AND \"%s 00:00:00\"\n AND", date1, date2));
+        }
+        return builder.toString();
+    }
+
+    public String GetLikeComponentOfSearchStatement(String like1, String like2)
+            throws NumberFormatException, UnsupportedOperationException {
+
+        StringBuilder builder = new StringBuilder();
+        int like1int, like2int;
+
+        //let's validate them here, do the minimum work
+        //also means it doesnt matter what the function does with the null string
+
+        try { //convert them to ints - checks if theyre valid ints and means we can check the range.
+            like1int = Integer.parseInt(like1);
+            like2int = Integer.parseInt(like2);
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("Error converting to integers in like component");
+        }
+
+        //if the lower bound is greater than the upper bound.
+        if (like1int > like2int) {
+            throw new UnsupportedOperationException("Invalid range of vote things");
+        }
+
+
+        //now we've done all the validation, lets actually yknow get the like component of the search statement
+        if (like1.equals("")) {
+            builder.append(String.format(" VoteSum <= %s\nAND", like2));
+        } else if (like2.equals("")) {
+            builder.append(String.format(" VoteSum >= %s\nAND", like1));
+        } else {
+            builder.append(String.format(" VoteSum BETWEEN %s AND %s\nAND", like1, like2));
+        }
+
+        return builder.toString();
     }
 
 }

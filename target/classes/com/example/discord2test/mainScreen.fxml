@@ -1,22 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.ScrollPane?>
-
-<?import javafx.scene.text.Text?>
-<?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.ToggleGroup?>
-
-
 <!-- pop the entire page in a scroll pane, its the easiest way to add a scrollbar -->
 
-<?import javafx.scene.control.DatePicker?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.discord2test.Discord2Controller">
 
@@ -107,6 +97,7 @@
                             <Button text="search" onAction="#onSearchButtonPressed"/>
                             <Text text="error" fx:id="oopsyText" visible="false" fill="red"/>
                         </HBox>
+                        <VBox fx:id="searchMessageBox" visible="false" managed="false"/>
                     </VBox>
                 </center>
             </BorderPane>
@@ -118,10 +109,8 @@
 
 
         <center>
-            <VBox>
-                <VBox fx:id="messageBox">
-
-                </VBox>
+            <VBox> <!--If we ever want to put anything else under here, we'll need this VBox -->
+                <VBox fx:id="messageBox"/>
             </VBox>
         </center>
 
