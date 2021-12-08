@@ -21,7 +21,9 @@ public class Discord2Loader extends Application {
         this.stage = stage; //set the member stage to be the same as the stage in this application.
 
         FXMLLoader fxmlLoader = new FXMLLoader(Discord2Loader.class.getResource("loginScreen.fxml")); //loads in sheet
-        Scene scene = new Scene(fxmlLoader.load(), 1920, 1080); //create a new seen with height and width
+        Scene scene = new Scene(fxmlLoader.load(), 640, 480); //create a new scene with height and width
+        //if someone is using a monitor smaller than 640x480 in 2021 it's their problem
+
         stage.setTitle("Discord 2"); //set title
 
         stage.setScene(scene);    //set the scene on stage

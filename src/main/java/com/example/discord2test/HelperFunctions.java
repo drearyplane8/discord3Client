@@ -4,12 +4,21 @@ import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 
 import java.sql.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class HelperFunctions {
 
     public static String GetDatabaseVersion(Connection connection) throws SQLException {
         DatabaseMetaData metaData = connection.getMetaData();
         return String.format("JDBC version %d.%d\n", metaData.getJDBCMajorVersion(), metaData.getJDBCMinorVersion());
+    }
+
+    //this is purely a debug function now so we can just run it with false.
+    public static void PrintMessageTableNicely(MessagesTable table){
+        for(MessagesRow row : table.getRows()){
+            PrintMessageNicely(row, false);
+        }
     }
 
     /***
@@ -37,8 +46,10 @@ public class HelperFunctions {
      */
     public static int GetMessageCount(Statement statement) throws SQLException {
         ResultSet CountRS = statement.executeQuery("SELECT count(*) FROM messages"); //get the amount of messages
-        CountRS.first(); //since result is returned as a 1x1 table, look at the first and only row
+        CountRS.first();                     //since result is returned as a 1x1 table, look at the first and only row
         return CountRS.getInt(1); //and the first and only column
 
     }
+
+
 }
