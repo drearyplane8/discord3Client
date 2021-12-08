@@ -276,6 +276,7 @@ public class Discord2Controller {
             } catch (UnsupportedOperationException e) {
                 System.err.println("Date range is wrong.");
                 UpdateOopsyText("Error: Invalid date range (are your dates the wrong way round?)", true);
+                return; //cancel execution
             }
         }
 
@@ -283,10 +284,18 @@ public class Discord2Controller {
 
         String like1 = likesLowerBoundInputField.getText(), like2 = likesUpperBoundInputField.getText();
         try {
-            statementBuilder.append(GetLikeComponentOfSearchStatement(like1, like2));
+            //no need to run this if theyre both null, we're not trying to search in that case.
+            if (!(like1.equals("") && like2.equals(""))) {
+                statementBuilder.append(GetLikeComponentOfSearchStatement(like1, like2));
+            }
         } catch (NumberFormatException e) {
             System.err.println("one parameter wasnt an int");
             UpdateOopsyText("Error: Invalid values for the votes field. Make sure they contain only 0-9 and the minus '-' sign", true);
+            return; //cancel execution
+        } catch (UnsupportedOperationException e) {
+            System.err.println("one was greater than the other");
+            UpdateOopsyText("Error: Invalid vote range. Make sure the votes are in the right order.", true);
+            return; //cancel execution
         }
 
         String author = userInputField.getText();
@@ -303,20 +312,23 @@ public class Discord2Controller {
         switch (pressedButton) {
             case "likesHighToLowButton" -> statementBuilder.append("ORDER BY VoteSum DESC;");
             case "likesLowToHighButton" -> statementBuilder.append("ORDER BY VoteSum ASC;");
-            case "timeSentOldestToNewest" -> statementBuilder.append("ORDER BY TimeSent DESC;");
-            case "timeSentNewestToOldest" -> statementBuilder.append("ORDER BY TimeSent ASC;");
+            case "timeSentOldestToNewest" -> statementBuilder.append("ORDER BY TimeSent ASC;");
+            case "timeSentNewestToOldest" -> statementBuilder.append("ORDER BY TimeSent DESC;");
             default -> System.err.println("CHARLIE DID A BIG OOPSY");
         }
 
         String searchStatement = statementBuilder.toString();
-
+        System.out.println("Final SQL Statement:\n" + searchStatement);
         //lets send the search statement off to the database and see what happens:
 
         ResultSet rs = statement.executeQuery(searchStatement);
 
         //on a fresh result set, this will tell us whether the set is empty
         if (!rs.isBeforeFirst()) {
-            //quickly and dirtily display on the screen if nothing is found.
+            //clear the search message box
+            searchMessageBox.getChildren().clear();
+
+            //display the text that no messages found.
             searchMessageBox.getChildren().add(new Text("No results found."));
             return;
         }
@@ -324,8 +336,6 @@ public class Discord2Controller {
         MessagesTable table = new MessagesTable(rs);
         DisplayMessageTableInVBox(table, searchMessageBox, true);
 
-        HelperFunctions.PrintMessageTableNicely(table);
-        System.out.println("\n--------------------------------------------\n");
     }
 
     public void UpdateOopsyText(String contents, boolean isVisible) {
@@ -358,37 +368,43 @@ public class Discord2Controller {
     public String GetLikeComponentOfSearchStatement(String like1, String like2)
             throws NumberFormatException, UnsupportedOperationException {
 
-        StringBuilder builder = new StringBuilder();
         int like1int, like2int;
 
-        //let's validate them here, do the minimum work
-        //also means it doesnt matter what the function does with the null string
+        //if we got here, at least one of them is not null.
 
-        try { //convert them to ints - checks if theyre valid ints and means we can check the range.
+        if (!like1.equals("")) {
             like1int = Integer.parseInt(like1);
+            //if like1 isnt null and like2 is, we're doing lower bound.
+            if (like2.equals("")) {
+                return String.format(" VoteSum >= %s\nAND", like1);
+            } else {
+                //ok so at this point we're doing BETWEEN
+                like2int = Integer.parseInt(like2);
+                if (like1int > like2int) {
+                    //our two parameters are in the wrong order.
+                    throw new UnsupportedOperationException("Vote things out of order.");
+                }
+                return String.format(" VoteSum BETWEEN %s AND %s\nAND", like1, like2);
+            }
+        } else { //if like1 is "", then that means we must be doing like2 only, therefore less than.
             like2int = Integer.parseInt(like2);
-        } catch (NumberFormatException e) {
-            throw new NumberFormatException("Error converting to integers in like component");
+            return String.format(" VoteSum <= %s\nAND", like2);
         }
 
-        //if the lower bound is greater than the upper bound.
-        if (like1int > like2int) {
-            throw new UnsupportedOperationException("Invalid range of vote things");
-        }
-
-
-        //now we've done all the validation, lets actually yknow get the like component of the search statement
-        if (like1.equals("")) {
-            builder.append(String.format(" VoteSum <= %s\nAND", like2));
-        } else if (like2.equals("")) {
-            builder.append(String.format(" VoteSum >= %s\nAND", like1));
-        } else {
-            builder.append(String.format(" VoteSum BETWEEN %s AND %s\nAND", like1, like2));
-        }
-
-        return builder.toString();
     }
 
+    //is this scalable? no but itll do
+    public void onClearSearchFiltersButtonPressed() {
+
+        keywordInputField.setText("");
+        userInputField.setText("");
+        likesLowerBoundInputField.setText("");
+        likesUpperBoundInputField.setText("");
+
+        dateLowerBoundInputField.setValue(null);
+        dateUpperBoundInputField.setValue(null);
+
+    }
 }
 
 

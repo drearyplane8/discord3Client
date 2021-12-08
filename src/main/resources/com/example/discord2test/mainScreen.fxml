@@ -43,9 +43,9 @@
                             <VBox>
                                 <HBox>
                                     <Text text="Date Range: From"/>
-                                    <DatePicker fx:id="dateLowerBoundInputField" prefWidth="12"/>
+                                    <DatePicker fx:id="dateLowerBoundInputField" prefWidth="100"/>
                                     <Text text=" to "/>
-                                    <DatePicker fx:id="dateUpperBoundInputField" prefWidth="12"/>
+                                    <DatePicker fx:id="dateUpperBoundInputField" prefWidth="100"/>
                                 </HBox>
                                 <HBox>
                                     <Text text="Likes: From"/>
@@ -94,7 +94,8 @@
                             </VBox>
                         </HBox>
                         <HBox>
-                            <Button text="search" onAction="#onSearchButtonPressed"/>
+                            <Button text="Search" onAction="#onSearchButtonPressed"/>
+                            <Button text="Clear Filters" onAction="#onClearSearchFiltersButtonPressed"/>
                             <Text text="error" fx:id="oopsyText" visible="false" fill="red"/>
                         </HBox>
                         <VBox fx:id="searchMessageBox" visible="false" managed="false"/>
