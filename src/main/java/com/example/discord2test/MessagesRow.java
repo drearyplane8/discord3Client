@@ -45,38 +45,10 @@ public class MessagesRow {
         FileData = fileData;
     }
 
-    private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
-
-    public static String bytesToHex(byte[] bytes) { //stolen beautifully off the internet.
-        byte[] hexChars = new byte[bytes.length * 2]; //converts a byte array to a hexadecimal string using bitwise magic
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars, StandardCharsets.UTF_8);
-    }
 
     public static String InstantToMySQLFormat(Instant instant) { //convert an Instant object to the string representation mysql wants
         return new Timestamp(instant.toEpochMilli()).toString();
     }
-
-    /**
-     * @param tableName the name of a table to generate an insert statement for
-     * @return a correctly formatted insert statement using the data from this MessagesRow
-     *//// @throws IOException if converting from the FileStream to a hexadecimal string fails.
-
-    public String CreateInsertStatement(String tableName) {
-
-        /*String hexString;
-        if (FileData != null) {
-            byte[] FileBytes = FileData.readAllBytes();
-            hexString = bytesToHex(FileBytes);
-        } else hexString = "NULL";
-*/
-        return String.format("INSERT INTO %s\n", tableName) +
-                String.format("Values(default, \"%s\", \"%s\", \"%s\", %d, \"%s\", \"%s\");", Author, Text, InstantToMySQLFormat(TimeSent), VoteSum, FileExtension, null);
-    } //todo format the date better
 
     @Override
     public String toString() {
@@ -105,8 +77,8 @@ public class MessagesRow {
         ps.setInt(4, VoteSum);
 
         //for file extension and file data, just send the null string until we make this work.
-        ps.setString(5, null);
-        ps.setString(6, null);
+        ps.setString(5, FileExtension);
+        ps.setBinaryStream(6, FileData);
 
         return ps;
     }

@@ -1,5 +1,7 @@
 package com.example.discord2test;
 
+import javafx.stage.Stage;
+
 public class Globals {
 
     public static final String URL = "jdbc:mysql://localhost:3306/discord2db";
@@ -8,5 +10,6 @@ public class Globals {
 
     static public String username;
     public static Discord2Loader loader;
+    static public Stage stage;
 
 }

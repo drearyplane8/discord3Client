@@ -13,6 +13,8 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import jdk.jfr.Description;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,10 +34,12 @@ public class Discord2Controller {
     public VBox messageBox;
     public TextField messageInputField;
     public BorderPane SearchPane;
+
     //a list of everything we want to invisible when the scroll pane pulls up
     public ArrayList<Node> mainMessageNodes = new ArrayList<>();
     //and a list of everything that makes up the search pane
     public ArrayList<Node> searchPaneNodes = new ArrayList<>();
+
     //All the text fields in the search section
     public TextField keywordInputField,
             userInputField,
@@ -44,21 +48,25 @@ public class Discord2Controller {
     public DatePicker
             dateLowerBoundInputField,
             dateUpperBoundInputField;
-    //the radio buttons in the search section
-    public RadioButton timeSentNewestToOldestButton;
-    public RadioButton timeSentOldestToNewestButton;
-    public RadioButton likesLowToHighButton;
-    public RadioButton likesHighToLowButton;
+
     public ToggleGroup sortButtonsGroup;
     public Button mainPaneSearchPaneButton;
     public Text oopsyText;
     public VBox searchMessageBox;
+    public Text fileNameText;
+    public CheckBox sendFileCheckBox;
+
     //JDBC - related member variables
     private Connection connection; //hold a reference to our connection and statement, this way all functions can use
     private Statement statement;   //them, saves overhead.
+
     //other variables
     private int MessageCount;
     private boolean searchPaneOpen = false;
+
+    //hold the file selected by the file selector
+    //this can be null!
+    private File currentlySelectedFile;
 
     @FXML
     public void initialize() throws SQLException {
@@ -99,8 +107,22 @@ public class Discord2Controller {
     //09/12 refactoring this code to use PreparedStatement
     public void onSubmit() throws SQLException {
 
+        FileInputStream fileToSendAsStream = null;
+        String fileToSendExtension = null;
+
+        //if a file is currently selected, and the checkbox to send the file is clicked
+        if(currentlySelectedFile != null && sendFileCheckBox.isSelected()){
+            try{
+                fileToSendAsStream = new FileInputStream(currentlySelectedFile);
+                //to get the extension, split the filename on the '.' character and take the latter part.
+                fileToSendExtension = currentlySelectedFile.getName().split("\\.")[1];
+            } catch (Exception e) {
+                System.err.println("Done fucky wucky in the onSubmit file handling " + e);
+            }
+        }
+
         MessagesRow mr = new MessagesRow(Globals.username, messageInputField.getText(),
-                Instant.now(), null, null);
+                Instant.now(), fileToSendExtension, fileToSendAsStream);
 
         //pass our member reference to the connection.
         PreparedStatement ps = mr.CreatePreparedInsertStatement("messages", connection);
@@ -217,7 +239,7 @@ public class Discord2Controller {
 
     public void UpdateDatabaseAboutVote(int MessageID, boolean positive) throws SQLException {
 
-        //firstly, see if we're upvoting or downvoting.
+        //firstly, see if we're upvoting or downvoting.it
         int voteToAdd;
         if (positive) voteToAdd = 1;
         else voteToAdd = -1;
@@ -385,7 +407,8 @@ public class Discord2Controller {
                 return String.format(" VoteSum BETWEEN %s AND %s\nAND", like1, like2);
             }
         } else { //if like1 is "", then that means we must be doing like2 only, therefore less than.
-            like2int = Integer.parseInt(like2);
+            //yes the result is ignored: we're using it as a validation only.
+            Integer.parseInt(like2);
             return String.format(" VoteSum <= %s\nAND", like2);
         }
 
@@ -407,9 +430,22 @@ public class Discord2Controller {
     public void onFileChooserButtonPressed() {
 
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("uwu");
-        chooser.showOpenDialog(stage);
+        chooser.setTitle("Select File");
+        currentlySelectedFile = chooser.showOpenDialog(Globals.stage);
+        UpdateFileNameText();
+    }
 
+    public void UpdateFileNameText(){
+        if (currentlySelectedFile == null){
+            fileNameText.setText("No file selected.");
+        } else {
+            fileNameText.setText(currentlySelectedFile.getName());
+        }
+    }
+
+    public void onClearFileButtonPressed() {
+        currentlySelectedFile = null;
+        UpdateFileNameText();
     }
 }
 

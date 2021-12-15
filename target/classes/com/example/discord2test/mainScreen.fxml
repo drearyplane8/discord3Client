@@ -116,11 +116,24 @@
         </center>
 
         <bottom>
-            <HBox alignment="BOTTOM_LEFT" fx:id="buttonBox">
-                <TextField text="Send a message" fx:id="messageInputField" alignment="BOTTOM_LEFT" prefWidth="500"
-                           prefHeight="30" onKeyPressed="#onKeyPressed_MessageField"/>
-                <Button text="send" onAction="#onSubmit"/>
-            </HBox>
+            <VBox>
+                <!-- this first HBox holds the message field and the submit button -->
+                <HBox alignment="BOTTOM_LEFT" fx:id="buttonBox">
+                    <TextField text="Send a message" fx:id="messageInputField" alignment="BOTTOM_LEFT" prefWidth="500"
+                               prefHeight="30" onKeyPressed="#onKeyPressed_MessageField"/>
+                    <Button text="send" onAction="#onSubmit"/>
+                    <Label text="Send file?"/>
+                    <CheckBox fx:id="sendFileCheckBox"/>
+                </HBox>
+
+                <!-- this one will hold the file chooser button and the text saying what file is selected -->
+                <HBox>
+                    <Button text="Select File" onAction="#onFileChooserButtonPressed"/>
+                    <Button text="Clear File" onAction="#onClearFileButtonPressed"/>
+                    <Text text="No file selected" fx:id="fileNameText"/>
+                </HBox>
+
+            </VBox>
         </bottom>
 
     </BorderPane>
