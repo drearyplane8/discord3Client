@@ -1,5 +1,6 @@
 package com.example.discord2test;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -9,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import jdk.jfr.Description;
 
 import java.sql.*;
@@ -94,16 +96,17 @@ public class Discord2Controller {
         search.addAll(List.of(SearchPane, searchMessageBox));
     }
 
+    //09/12 refactoring this code to use PreparedStatement
     public void onSubmit() throws SQLException {
 
-        String username = Globals.username;
-
-        MessagesRow mr = new MessagesRow(username, messageInputField.getText(),
+        MessagesRow mr = new MessagesRow(Globals.username, messageInputField.getText(),
                 Instant.now(), null, null);
-        String InsertStatement = mr.CreateInsertStatement("messages");
 
-        int result = statement.executeUpdate(InsertStatement);
-        System.out.printf("Sent to database, return code %d\n", result);
+        //pass our member reference to the connection.
+        PreparedStatement ps = mr.CreatePreparedInsertStatement("messages", connection);
+        int result = ps.executeUpdate();
+
+        System.out.printf("Sent message insert statement to the DB, result code %d\n", result);
 
         //this is a good time to refresh the message list, since we have no way of client communication yet
         GetNewMessages();
@@ -152,7 +155,6 @@ public class Discord2Controller {
     public void onKeyPressed_MessageField(KeyEvent keyEvent) throws SQLException {
         if (keyEvent.getCode() == KeyCode.ENTER) onSubmit();
     }
-
 
     public void onVote(int MessageID, boolean upvote) {
         try {
@@ -224,10 +226,6 @@ public class Discord2Controller {
         final String updateStatement = String.format("UPDATE messages SET VoteSum = VoteSum + %d WHERE MessageID = %d", voteToAdd, MessageID);
 
         statement.executeUpdate(updateStatement);
-    }
-
-    public void GenerateSearchSelectStatement() {
-
     }
 
     //make the search panel show up when we press the button
@@ -403,6 +401,14 @@ public class Discord2Controller {
 
         dateLowerBoundInputField.setValue(null);
         dateUpperBoundInputField.setValue(null);
+
+    }
+
+    public void onFileChooserButtonPressed() {
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("uwu");
+        chooser.showOpenDialog(stage);
 
     }
 }

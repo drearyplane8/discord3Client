@@ -3,9 +3,7 @@ package com.example.discord2test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.Instant;
 
 public class MessagesRow {
@@ -91,6 +89,26 @@ public class MessagesRow {
                 ", FileExtension='" + FileExtension + '\'' +
                 ", FileData=" + FileData +
                 '}';
+    }
+
+    public PreparedStatement CreatePreparedInsertStatement(String tableName, Connection con) throws SQLException {
+        String statement = String.format("INSERT INTO %s\n", tableName) +
+                "Values(default, ?, ?, ?, ?, ?, ?);";
+
+        PreparedStatement ps = con.prepareStatement(statement);
+
+        //mysql everything starts at 1!
+        //except it starts at 2 because the first field is default? i don't actually know.
+        ps.setString(1, Author);
+        ps.setString(2, Text);
+        ps.setString(3, InstantToMySQLFormat(TimeSent));
+        ps.setInt(4, VoteSum);
+
+        //for file extension and file data, just send the null string until we make this work.
+        ps.setString(5, null);
+        ps.setString(6, null);
+
+        return ps;
     }
 
     public String toNiceString(){

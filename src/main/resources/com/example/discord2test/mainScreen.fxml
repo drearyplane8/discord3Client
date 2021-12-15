@@ -7,6 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
+
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.discord2test.Discord2Controller">
 
@@ -120,6 +121,7 @@
                 <TextField text="Send a message" fx:id="messageInputField" alignment="BOTTOM_LEFT" prefWidth="500"
                            prefHeight="30" onKeyPressed="#onKeyPressed_MessageField"/>
                 <Button text="send" onAction="#onSubmit"/>
+                <Button text="file" onAction="#onFileChooserButtonPressed"
             </HBox>
         </bottom>
 
