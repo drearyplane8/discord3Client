@@ -33,7 +33,7 @@ public class MessagesRow {
         VoteSum = rs.getInt(5);
 
         FileExtension = rs.getString(6);
-        FileData = rs.getBinaryStream(7); //we probably wanna replace this with JDBC.Blob
+        FileData = rs.getBinaryStream(7);
     }
 
     public MessagesRow(String author, String text, Instant timeSent, String fileExtension, InputStream fileData) {

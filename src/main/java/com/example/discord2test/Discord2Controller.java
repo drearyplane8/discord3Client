@@ -130,8 +130,10 @@ public class Discord2Controller {
 
         System.out.printf("Sent message insert statement to the DB, result code %d\n", result);
 
+
         //this is a good time to refresh the message list, since we have no way of client communication yet
         GetNewMessages();
+        MessageCount++;
     }
 
     public void GetNewMessages() throws SQLException {
@@ -447,6 +449,7 @@ public class Discord2Controller {
         currentlySelectedFile = null;
         UpdateFileNameText();
     }
+
 }
 
 
