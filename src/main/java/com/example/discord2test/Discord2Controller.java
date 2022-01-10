@@ -15,6 +15,7 @@ import jdk.jfr.Description;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -105,7 +106,7 @@ public class Discord2Controller {
     }
 
     //09/12 refactoring this code to use PreparedStatement
-    public void onSubmit() throws SQLException {
+    public void onSubmit() throws SQLException, IOException {
 
         FileInputStream fileToSendAsStream = null;
         String fileToSendExtension = null;
@@ -122,7 +123,7 @@ public class Discord2Controller {
         }
 
         MessagesRow mr = new MessagesRow(Globals.username, messageInputField.getText(),
-                Instant.now(), fileToSendExtension, fileToSendAsStream);
+                Instant.now(), fileToSendExtension, fileToSendAsStream.readAllBytes());
 
         //pass our member reference to the connection.
         PreparedStatement ps = mr.CreatePreparedInsertStatement("messages", connection);
@@ -176,7 +177,7 @@ public class Discord2Controller {
     }
 
     @Description("If a key is pressed in the message field, if its enter, forward to onSubmit()")
-    public void onKeyPressed_MessageField(KeyEvent keyEvent) throws SQLException {
+    public void onKeyPressed_MessageField(KeyEvent keyEvent) throws SQLException, IOException {
         if (keyEvent.getCode() == KeyCode.ENTER) onSubmit();
     }
 

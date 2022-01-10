@@ -8,12 +8,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 import java.io.*;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-
 
 /***
  * A class that exists to take the data from a MessageRow and put it into a nice javafx format.
@@ -26,6 +29,8 @@ public class ProcessedMessage {
     public Text voteSum;
     public ImageView imageView;
     private Text author, text, date;
+
+    private boolean hasFile = false;
     private boolean hasImage = false;
 
     //a constructor which takes a message row, kinda makes more sense this way
@@ -47,7 +52,8 @@ public class ProcessedMessage {
 
         //currently only accounts for PNGs
         if (message.FileExtension != null) {
-            hasImage = message.FileExtension.equals("png");
+            hasFile = true;
+            hasImage = Globals.ImageExtensions.contains(message.FileExtension.toLowerCase(Locale.ROOT));
         }
 
     }
@@ -59,28 +65,55 @@ public class ProcessedMessage {
         // and the vote arrows
         HBox toReturn = new HBox(8, author, text, date, buttons.getBox(), voteSum);
 
-        //if it has an image, add the image and requisite shit
-        if (hasImage) {
-            Button revealButton = new Button("Img");
 
-            //create an image and assign it to an image view
-            Image image = new Image(message.FileData);
-            imageView = new ImageView(image);
-            imageView.setVisible(false);
-            imageView.setManaged(false);
-
-            //todo give this functionality
+        if (hasFile) {
             Button downloadButton = new Button("Download");
+            //if it has an image, add the image and requisite shit
+            if (hasImage) {
+                Button revealButton = new Button("Img");
 
-            toReturn.getChildren().addAll(revealButton, imageView, downloadButton);
+                //copy the file data so the stream is still open
 
-            revealButton.setOnAction(e -> {
-                imageView.setVisible(!imageView.isVisible());
-                imageView.setManaged(!imageView.isManaged());
-            });
+                //create an image and assign it to an image view
+                Image image = new Image(new ByteArrayInputStream(message.FileData));
+                imageView = new ImageView(image);
+                imageView.setVisible(false);
+                imageView.setManaged(false);
 
+                toReturn.getChildren().addAll(revealButton, imageView);
+
+                revealButton.setOnAction(e -> {
+                    imageView.setVisible(!imageView.isVisible());
+                    imageView.setManaged(!imageView.isManaged());
+                });
+            } else {
+                toReturn.getChildren().add(new Text(message.FileExtension.toUpperCase(Locale.ROOT) + " File"));
+            }
+            toReturn.getChildren().add(downloadButton);
+            downloadButton.setOnAction(e -> ProcessFileDownload());
         }
         return toReturn;
+    }
+
+    public void ProcessFileDownload(){
+        FileChooser chooser = new FileChooser();
+        chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        chooser.getExtensionFilters().add(
+                new ExtensionFilter(
+                        message.FileExtension.toUpperCase(Locale.ROOT) + " Files",
+                        "*." + message.FileExtension)
+        );
+
+        File fileHandle = chooser.showSaveDialog(Globals.stage);
+
+        if (fileHandle != null) {
+            //try with resources auto closes the stream
+            try(FileOutputStream fos = new FileOutputStream(fileHandle)) {
+                fos.write(message.FileData);
+            } catch (Exception e) {
+                System.err.println("file writing wrong");
+            }
+        }
     }
 
 

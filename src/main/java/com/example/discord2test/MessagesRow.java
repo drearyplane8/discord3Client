@@ -16,7 +16,7 @@ public class MessagesRow {
 
 
     String FileExtension;
-    InputStream FileData;
+    byte[] FileData;
 
     /**
      * @param row the index of the row of the ResultSet that we're converting into a MessagesRow
@@ -33,10 +33,10 @@ public class MessagesRow {
         VoteSum = rs.getInt(5);
 
         FileExtension = rs.getString(6);
-        FileData = rs.getBinaryStream(7);
+        FileData = rs.getBytes(7);
     }
 
-    public MessagesRow(String author, String text, Instant timeSent, String fileExtension, InputStream fileData) {
+    public MessagesRow(String author, String text, Instant timeSent, String fileExtension, byte[] fileData) {
         Author = author;
         Text = text;
         TimeSent = timeSent;
@@ -78,7 +78,7 @@ public class MessagesRow {
 
         //for file extension and file data, just send the null string until we make this work.
         ps.setString(5, FileExtension);
-        ps.setBinaryStream(6, FileData);
+        ps.setBytes(6, FileData);
 
         return ps;
     }
