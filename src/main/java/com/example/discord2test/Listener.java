@@ -17,7 +17,7 @@ public class Listener extends Thread {
 
     private boolean url = false, user = false, pwd = false;
 
-    private Discord2Controller parentController;
+    private final Discord2Controller parentController;
 
     public Listener(String ip, int port, Discord2Controller controller) {
         this.parentController = controller;
