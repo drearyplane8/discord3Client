@@ -8,9 +8,12 @@ import java.util.List;
 
 public class Globals {
 
-    public static final String URL = "jdbc:mysql://localhost:3306/discord2db";
-    public final static String USERNAME = "java";
-    final public static String PASSWORD = "java";
+    public static String URL;
+    public static String DB_USERNAME;
+    public static String PASSWORD;
+
+    public static String IP;
+    public static int port;
 
     //a hashset of all supported image formats.
     public static final HashSet<String> ImageExtensions = new HashSet<>(

@@ -9,32 +9,46 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.Font?>
 <?import javafx.geometry.Insets?>
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.discord2test.LoginController"
-      prefHeight="1080" prefWidth="1920" alignment="TOP_CENTER">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.discord2test.LoginController"
+            prefHeight="1080" prefWidth="1920">
 
-    <HBox alignment="CENTER"> <!-- this is ugly but i need to make it centre aligned -->
-        <Text textAlignment="CENTER" text="Connect to Server" style="-fx-font-weight: bold; -fx-font-size: 36;"/>
-        <!-- using fx css is necessary to make it bold? idk documentation bad -->
-    </HBox>
+    <center>
+
+        <VBox alignment="TOP_CENTER" spacing="10">
+
+            <padding>
+                <Insets top="100" bottom="10"/>
+            </padding>
+
+            <Text textAlignment="CENTER" text="Connect to Server" style="-fx-font-weight: bold; -fx-font-size: 36;"/>
+
+            <VBox spacing="3" alignment="CENTER">
+
+                <TextField text="Username" fx:id="nameField" prefWidth="400" prefHeight="30" maxWidth="500"
+                           maxHeight="40"
+                           alignment="CENTER" onKeyPressed="#onKeyPressed">
+                </TextField>
+                <!-- some display weirdness: so i made it max height -->
+
+                <HBox alignment="CENTER">
+                    <TextField text="IP" fx:id="ipField" prefWidth="440" prefHeight="30" maxWidth="9999999"
+                               maxHeight="40"/>
+                    <TextField text="Port" fx:id="portField" prefWidth="60" prefHeight="30" maxWidth="70"
+                               maxHeight="40"/>
+                </HBox>
+
+                <Button text="Connect" onAction="#onConnect">
+                    <VBox.margin>
+                        <Insets top="5"/>
+                    </VBox.margin>
+                </Button> <!-- god damn fxml is ugly sometimes but it works -->
+
+            </VBox>
+
+        </VBox>
+    </center>
 
 
-    <VBox alignment="TOP_CENTER">
-
-        <padding>
-            <Insets top="100" bottom="10"/>
-        </padding>
-
-        <TextField text="Username" fx:id="nameField" prefWidth="400" prefHeight="30" maxWidth="500" maxHeight="40"
-                   alignment="CENTER" onKeyPressed="#onKeyPressed"/>
-        <!-- some display weirdness: so i made it max height -->
-        <Button text="Connect" onAction="#onConnect">
-            <VBox.margin>
-                <Insets top="5"/>
-            </VBox.margin>
-        </Button> <!-- god damn fxml is ugly sometimes but it works -->
-    </VBox>
-
-
-</VBox>
+</BorderPane>

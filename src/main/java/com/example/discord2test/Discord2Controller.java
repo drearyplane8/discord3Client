@@ -1,6 +1,5 @@
 package com.example.discord2test;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -69,18 +68,30 @@ public class Discord2Controller {
     //this can be null!
     private File currentlySelectedFile;
 
+    private Listener listener;
+
     @FXML
     public void initialize() throws SQLException {
 
         SetUpVisibleLists(mainMessageNodes, searchPaneNodes);
 
+        //set up the listener thread and the stuff it needs
+        listener = new Listener(Globals.IP, Globals.port, this);
+        //fire up the listener thread
+        new Thread(listener).start();
+
+        //ask the listener politely to get the DB credentials
+        listener.AskForDBCreds();
+
+        //we need to wait until we have all the things
+        while (!listener.AreAllTheCredsIn()) {
+            System.out.println("waiting");
+        }
+
         //set up the connection when we load the form, so the whole
         //script has access to it
-        connection = DriverManager.getConnection(Globals.URL, Globals.USERNAME, Globals.PASSWORD);
+        connection = DriverManager.getConnection(Globals.URL, Globals.DB_USERNAME, Globals.PASSWORD);
         statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-
-        System.out.println("Connected");
-        System.out.println(HelperFunctions.GetDatabaseVersion(connection));
 
 
         //on launch, fetch all messages to display to the user
@@ -105,7 +116,6 @@ public class Discord2Controller {
         search.addAll(List.of(SearchPane, searchMessageBox));
     }
 
-    //09/12 refactoring this code to use PreparedStatement
     public void onSubmit() throws SQLException, IOException {
 
         FileInputStream fileToSendAsStream = null;
@@ -131,13 +141,13 @@ public class Discord2Controller {
 
         System.out.printf("Sent message insert statement to the DB, result code %d\n", result);
 
+        //this is not a good time to check for messages, we're telling the server baby
+        listener.TellServerWeSentAMessage(); //todo test this
 
-        //this is a good time to refresh the message list, since we have no way of client communication yet
-        GetNewMessages();
         MessageCount++;
     }
 
-    public void GetNewMessages() throws SQLException {
+    public synchronized void GetNewMessages() throws SQLException {
 
         //get the amount of messages currently in the database
         int currcount = HelperFunctions.GetMessageCount(statement);
