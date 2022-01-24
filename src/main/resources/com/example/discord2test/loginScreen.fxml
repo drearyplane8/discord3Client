@@ -22,24 +22,25 @@
                 <Insets top="100" bottom="10"/>
             </padding>
 
-            <Text textAlignment="CENTER" text="Connect to Server" style="-fx-font-weight: bold; -fx-font-size: 36;"/>
+            <Text textAlignment="CENTER" style="-fx-font-weight: bold; -fx-font-size: 36;"/>
 
             <VBox spacing="3" alignment="CENTER">
 
-                <TextField text="Username" fx:id="nameField" prefWidth="400" prefHeight="30" maxWidth="500"
+                <TextField promptText="Username" fx:id="nameField" prefWidth="400" prefHeight="30" maxWidth="500"
                            maxHeight="40"
                            alignment="CENTER" onKeyPressed="#onKeyPressed">
                 </TextField>
                 <!-- some display weirdness: so i made it max height -->
 
                 <HBox alignment="CENTER">
-                    <TextField text="IP" fx:id="ipField" prefWidth="440" prefHeight="30" maxWidth="9999999"
-                               maxHeight="40"/>
-                    <TextField text="Port" fx:id="portField" prefWidth="60" prefHeight="30" maxWidth="70"
+                    <TextField promptText="IP" fx:id="ipField" prefWidth="440" prefHeight="30" maxWidth="9999999"
+                               maxHeight="40" onKeyTyped="#onIPFieldChanged"/>
+                    <TextField promptText="Port" fx:id="portField" prefWidth="60" prefHeight="30" maxWidth="70"
                                maxHeight="40"/>
                 </HBox>
 
-                <Button text="Connect" onAction="#onConnect">
+                <Button text="Connect" onAction="#onConnect" prefWidth="150" prefHeight="50" fx:id="connectButton"
+                        style="-fx-font-size: 20; -fx-font-weight: bold">
                     <VBox.margin>
                         <Insets top="5"/>
                     </VBox.margin>

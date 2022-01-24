@@ -1,29 +1,25 @@
 package com.example.discord2test;
 
+import javafx.application.Platform;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Listener extends Thread {
 
+    private final Discord2Controller parentController;
     private Socket socket;
-
     private Scanner in;
     private PrintWriter out;
+    private volatile boolean url = false, user = false, pwd = false;
 
-    private boolean url = false, user = false, pwd = false;
-
-    private final Discord2Controller parentController;
-
-    public Listener(String ip, int port, Discord2Controller controller) {
+    public Listener(Socket socket, Discord2Controller controller) {
         this.parentController = controller;
         try {
-            //initalise the socket and the output streams
-            socket = new Socket(ip, port);
+            this.socket = socket;
             in = new Scanner(socket.getInputStream());
             out = new PrintWriter(socket.getOutputStream(), true);
         } catch (IOException e) {
@@ -46,20 +42,31 @@ public class Listener extends Thread {
 
     @Override
     public void run() {
+        System.out.println("run running");
         while (!socket.isClosed() && !currentThread().isInterrupted()) {
+            System.out.println("in while loop");
             String comingIn = in.nextLine();
             if (ISUCC.CLIENT_CHECK_MESSAGES.equals(comingIn)) {
+
                 //instruct the main thread to check for new messages
                 System.out.println("check for new messages!");
 
-                try {
-                    parentController.GetNewMessages();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                //what do the two brackets do? no idea. but this is neater than the anonymous class syntax.
+                //this runnable tells the parent controller to check new messages.
+                Runnable GetNewMessages = () -> {
+                    try {
+                        parentController.GetNewMessages();
+                    } catch (SQLException e) {
+                        parentController.ShowErrorBox("Discord2 Error",
+                                "An error occurred fetching new messages",
+                                "An error occurred interfacing with the database to fetch new messages.");
+                    }
+                };
+                //tell JavaFX to slap our new runnable somewhere on the event queue
+                Platform.runLater(GetNewMessages);
 
             } else {
-                //the object could be our username, password or or url thing
+                //the object could be our username, password or url thing
                 String[] splitComingIn = comingIn.split("\"");
 
                 switch (splitComingIn[0]) {
@@ -75,7 +82,12 @@ public class Listener extends Thread {
                         Globals.PASSWORD = splitComingIn[1];
                         pwd = true;
                     }
-                    default -> System.err.println("unrecognised message");
+                    default -> {
+                        parentController.ShowErrorBox("Discord2 Security Error",
+                                "An unexpected message has been received from the server.",
+                                "This could mean your connection is not secure. Please contact the server" +
+                                        "administrator.");
+                    }
                 }
             }
         }

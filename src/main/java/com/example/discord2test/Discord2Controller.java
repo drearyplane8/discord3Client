@@ -1,5 +1,7 @@
 package com.example.discord2test;
 
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -13,7 +15,6 @@ import javafx.stage.FileChooser;
 import jdk.jfr.Description;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
@@ -56,6 +57,8 @@ public class Discord2Controller {
     public VBox searchMessageBox;
     public Text fileNameText;
     public CheckBox sendFileCheckBox;
+    public Button fileChooserButton;
+    public Button clearFileButton;
 
     //JDBC - related member variables
     private Connection connection; //hold a reference to our connection and statement, this way all functions can use
@@ -74,11 +77,13 @@ public class Discord2Controller {
     @FXML
     public void initialize() throws SQLException {
 
+        //redirect the close behaviour
+        Globals.stage.setOnCloseRequest(e -> OnClose(0));
+
         SetUpVisibleLists(mainMessageNodes, searchPaneNodes);
 
-        //set up the listener thread and the stuff it needs
-        listener = new Listener(Globals.IP, Globals.port, this);
-        //fire up the listener thread
+        //if we've made it this far, we know there's a valid socket connection chilling in Globals.
+        listener = new Listener(Globals.socket, this);
         new Thread(listener).start();
 
         //ask the listener politely to get the DB credentials
@@ -112,7 +117,11 @@ public class Discord2Controller {
                 buttonBox,
                 messageBox,
                 messageInputField,
-                mainPaneSearchPaneButton));
+                mainPaneSearchPaneButton,
+                fileNameText,
+                fileChooserButton,
+                clearFileButton
+                ));
 
         search.addAll(List.of(SearchPane, searchMessageBox));
     }
@@ -130,7 +139,10 @@ public class Discord2Controller {
                 mr = new MessagesRow(Globals.username, messageInputField.getText(), Instant.now(),
                         fileToSendExtension, fileBytes);
             } catch (Exception e) {
-                throw new RuntimeException("file handling failed.");
+                ShowErrorBox("Discord2 Error",
+                        "File Handling Failed",
+                        "An error occurred while processing the file to send.");
+                return;
             }
         } else {
             mr = new MessagesRow(Globals.username, messageInputField.getText(),
@@ -149,6 +161,8 @@ public class Discord2Controller {
     }
 
     public synchronized void GetNewMessages() throws SQLException {
+
+        System.out.println("Running GetNewMessages(), current thread = " + Thread.currentThread());
 
         //get the amount of messages currently in the database
         int currcount = HelperFunctions.GetMessageCount(statement);
@@ -204,12 +218,7 @@ public class Discord2Controller {
             BoolButton toUse = upvote ? buttons.getUp() : buttons.getDown();
 
             //if its been pressed already, we want to do the opposite
-            if (toUse.pressed) {
-                //so tell it to -1 if its an upvote and +1 if its a downvote
-                UpdateDatabaseAboutVote(MessageID, !upvote);
-            } else {
-                UpdateDatabaseAboutVote(MessageID, upvote);
-            }
+            UpdateDatabaseAboutVote(MessageID, !toUse.pressed);
 
             //flip the boolean and change the colours
             toUse.pressed = !toUse.pressed;
@@ -219,7 +228,8 @@ public class Discord2Controller {
             UpdateVoteCountForMessage(MessageID, pm);
 
         } catch (Exception e) {
-            System.err.println("done oopsy in upvote" + e);
+            ShowErrorBox("Discord2 SQL Error", "Failed to manage vote.", "An error occurred while" +
+                    "interfacing with the database.");
         }
     }
 
@@ -283,11 +293,12 @@ public class Discord2Controller {
 
     }
 
+
     //this is an absolute monster of a function.
     public void onSearchButtonPressed() throws SQLException {
 
         //clear the error text initially
-        UpdateOopsyText("", false);
+        HandleSearchingError("", false);
 
         //start a StringBuilder with what'll eventually be our search statement
         StringBuilder statementBuilder = new StringBuilder("SELECT * FROM messages\nWHERE");
@@ -310,7 +321,7 @@ public class Discord2Controller {
                 statementBuilder.append(GetDateComponentOfSearchStatement(date1, date2));
             } catch (UnsupportedOperationException e) {
                 System.err.println("Date range is wrong.");
-                UpdateOopsyText("Error: Invalid date range (are your dates the wrong way round?)", true);
+                HandleSearchingError("Error: Invalid date range (are your dates the wrong way round?)", true);
                 return; //cancel execution
             }
         }
@@ -324,12 +335,10 @@ public class Discord2Controller {
                 statementBuilder.append(GetLikeComponentOfSearchStatement(like1, like2));
             }
         } catch (NumberFormatException e) {
-            System.err.println("one parameter wasnt an int");
-            UpdateOopsyText("Error: Invalid values for the votes field. Make sure they contain only 0-9 and the minus '-' sign", true);
+            HandleSearchingError("Error: Invalid values for the votes field. Make sure they contain only 0-9 and the minus '-' sign", true);
             return; //cancel execution
         } catch (UnsupportedOperationException e) {
-            System.err.println("one was greater than the other");
-            UpdateOopsyText("Error: Invalid vote range. Make sure the votes are in the right order.", true);
+            HandleSearchingError("Error: Invalid vote range. Make sure the votes are in the right order.", true);
             return; //cancel execution
         }
 
@@ -349,7 +358,8 @@ public class Discord2Controller {
             case "likesLowToHighButton" -> statementBuilder.append("ORDER BY VoteSum ASC;");
             case "timeSentOldestToNewest" -> statementBuilder.append("ORDER BY TimeSent ASC;");
             case "timeSentNewestToOldest" -> statementBuilder.append("ORDER BY TimeSent DESC;");
-            default -> System.err.println("CHARLIE DID A BIG OOPSY");
+            default -> ShowErrorBox("Discord2 Unexpected error", "An unexpected error occurred.",
+                    "An unexpected error occurred while searching.");
         }
 
         String searchStatement = statementBuilder.toString();
@@ -373,7 +383,8 @@ public class Discord2Controller {
 
     }
 
-    public void UpdateOopsyText(String contents, boolean isVisible) {
+    public void HandleSearchingError(String contents, boolean isVisible) {
+        searchMessageBox.getChildren().clear();
         oopsyText.setText(contents);
         oopsyText.setVisible(isVisible);
     }
@@ -432,6 +443,9 @@ public class Discord2Controller {
     //is this scalable? no but itll do
     public void onClearSearchFiltersButtonPressed() {
 
+        //also we gonna clear whats already there
+        searchMessageBox.getChildren().clear();
+
         keywordInputField.setText("");
         userInputField.setText("");
         likesLowerBoundInputField.setText("");
@@ -461,6 +475,25 @@ public class Discord2Controller {
     public void onClearFileButtonPressed() {
         currentlySelectedFile = null;
         UpdateFileNameText();
+    }
+
+    public void OnClose(int exitCode) {
+        //close the listener thread
+        if (listener != null) {
+            listener.interrupt();
+        }
+        //close the JavaFX application
+        Platform.exit();
+        //end the process
+        System.exit(exitCode);
+    }
+
+    public void ShowErrorBox(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
 }

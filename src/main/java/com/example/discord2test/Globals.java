@@ -2,6 +2,7 @@ package com.example.discord2test;
 
 import javafx.stage.Stage;
 
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +20,8 @@ public class Globals {
     public static final HashSet<String> ImageExtensions = new HashSet<>(
             List.of("png", "jpg", "jpeg", "bmp", "gif")
     );
+
+    public static Socket socket;
 
     static public String username;
     public static Discord2Loader loader;

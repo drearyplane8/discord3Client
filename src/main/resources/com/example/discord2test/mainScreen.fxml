@@ -95,7 +95,7 @@
                         </HBox>
                         <HBox>
                             <Button text="Search" onAction="#onSearchButtonPressed"/>
-                            <Button text="Clear Filters" onAction="#onClearSearchFiltersButtonPressed"/>
+                            <Button text="Clear" onAction="#onClearSearchFiltersButtonPressed"/>
                             <Text text="error" fx:id="oopsyText" visible="false" fill="red"/>
                         </HBox>
                         <VBox fx:id="searchMessageBox" visible="false" managed="false"/>
@@ -110,16 +110,15 @@
 
 
         <center>
-            <VBox> <!--If we ever want to put anything else under here, we'll need this VBox -->
-                <VBox fx:id="messageBox"/>
-            </VBox>
+            <VBox fx:id="messageBox"/>
         </center>
 
         <bottom>
             <VBox>
                 <!-- this first HBox holds the message field and the submit button -->
                 <HBox alignment="BOTTOM_LEFT" fx:id="buttonBox">
-                    <TextField text="Send a message" fx:id="messageInputField" alignment="BOTTOM_LEFT" prefWidth="500"
+                    <TextField promptText="Send a message" fx:id="messageInputField" alignment="BOTTOM_LEFT"
+                               prefWidth="500"
                                prefHeight="30" onKeyPressed="#onKeyPressed_MessageField"/>
                     <Button text="send" onAction="#onSubmit"/>
                     <Label text="Send file?"/>
@@ -128,8 +127,8 @@
 
                 <!-- this one will hold the file chooser button and the text saying what file is selected -->
                 <HBox>
-                    <Button text="Select File" onAction="#onFileChooserButtonPressed"/>
-                    <Button text="Clear File" onAction="#onClearFileButtonPressed"/>
+                    <Button text="Select File" onAction="#onFileChooserButtonPressed" fx:id="fileChooserButton"/>
+                    <Button text="Clear File" onAction="#onClearFileButtonPressed" fx:id="clearFileButton"/>
                     <Text text="No file selected" fx:id="fileNameText"/>
                 </HBox>
 
