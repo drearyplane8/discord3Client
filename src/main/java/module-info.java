@@ -12,7 +12,6 @@ module com.example.discord2test {
     requires javafx.graphics;
     requires jdk.jfr;
     requires java.sql;
-    requires JColor;
 
     opens com.example.discord2test to javafx.fxml;
     exports com.example.discord2test;
