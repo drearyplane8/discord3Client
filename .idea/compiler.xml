@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="discord2Test" />
+        <module name="discord3Client" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="discord2Test" target="16" />
+      <module name="discord3Client" target="16" />
     </bytecodeTargetLevel>
   </component>
 </project>
