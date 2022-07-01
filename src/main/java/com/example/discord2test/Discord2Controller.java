@@ -36,6 +36,7 @@ public class Discord2Controller {
     public VBox messageBox;
     public TextField messageInputField;
     public BorderPane SearchPane;
+    public ScrollPane MainScrollPane;
 
     //a list of everything we want to invisible when the scroll pane pulls up
     public ArrayList<Node> mainMessageNodes = new ArrayList<>();
@@ -60,6 +61,7 @@ public class Discord2Controller {
     public Button fileChooserButton;
     public Button clearFileButton;
 
+
     //JDBC - related member variables
     private Connection connection; //hold a reference to our connection and statement, this way all functions can use
     private Statement statement;   //them, saves overhead.
@@ -74,8 +76,12 @@ public class Discord2Controller {
 
     private Listener listener;
 
+    private final long FILE_SIZE_LIMIT = 4194303L;
+
     @FXML
     public void initialize() throws SQLException {
+
+
 
         //redirect the close behaviour
         Globals.stage.setOnCloseRequest(e -> OnClose(0));
@@ -217,8 +223,18 @@ public class Discord2Controller {
             //ternary operator: decide which button we're using
             BoolButton toUse = upvote ? buttons.getUp() : buttons.getDown();
 
-            //if its been pressed already, we want to do the opposite
-            UpdateDatabaseAboutVote(MessageID, !toUse.pressed);
+            //if UpdateDatabaseAboutVote gets true, it adds one, false subtracts one
+            //so we have a cheeky little truth table
+
+            /*
+                U   P   Q
+                F   F   F
+                F   T   T
+                T   F   T
+                T   F   F
+             */
+            //which is just not eqauls, hence
+            UpdateDatabaseAboutVote(MessageID, upvote != toUse.pressed);
 
             //flip the boolean and change the colours
             toUse.pressed = !toUse.pressed;
@@ -461,6 +477,18 @@ public class Discord2Controller {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select File");
         currentlySelectedFile = chooser.showOpenDialog(Globals.stage);
+
+        //we're gonna verify file size here.
+        if (currentlySelectedFile != null) {
+            long size = currentlySelectedFile.length();
+            if(size > FILE_SIZE_LIMIT){
+                ShowErrorBox("File too large",
+                        "This file is too large for Discord 3",
+                        "Maximum size for files is " + FILE_SIZE_LIMIT + " bytes.");
+                currentlySelectedFile = null; //clear currently selected file.
+            }
+        }
+
         UpdateFileNameText();
     }
 

@@ -8,7 +8,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.example.discord2test.Discord2Controller">
+            fx:controller="com.example.discord2test.Discord2Controller"
+            fx:id="MainScrollPane">
 
     <BorderPane>
 

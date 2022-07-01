@@ -1,10 +1,9 @@
 package com.example.discord2test;
 
 
+import java.nio.ByteBuffer;
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Pattern;
 
 public class HelperFunctions {
@@ -48,6 +47,22 @@ public class HelperFunctions {
 
     public static LocalDate nextDay(LocalDate date){
         return date.withDayOfMonth(date.getDayOfMonth() + 1);
+    }
+
+    //THIS FUNCTION IS IN PLACE PASS BY REFERENCE
+    public static void InsertIntegerIntoByteArray(byte[] toInsertInto, int toInsert, int indexToInsertAt) {
+        byte[] bytes = ByteBuffer.allocate(Integer.BYTES).putInt(toInsert).array();
+        System.arraycopy(bytes, 0, toInsertInto, indexToInsertAt, Integer.BYTES);
+    }
+
+    public static void InsertShortIntoByteArray(byte[] toInsertInto, char toInsert, int indexToInsertAt) {
+        byte[] bytes = ByteBuffer.allocate(Character.BYTES).putChar(toInsert).array();
+        System.arraycopy(bytes, 0, toInsertInto, indexToInsertAt, Character.BYTES);
+    }
+
+    public static void InsertLongIntoByteArray(byte[] toInsertInto, long toInsert, int indexToInsertAt) {
+        byte[] bytes = ByteBuffer.allocate(Long.BYTES).putLong(toInsert).array();
+        System.arraycopy(bytes, 0, toInsertInto, indexToInsertAt, Long.BYTES);
     }
 
 
